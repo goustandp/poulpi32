@@ -135,5 +135,11 @@ package poulpi32_pkg is
 	constant C_F7_OR		: std_logic_vector(6 downto 0):="0000000";
 	constant C_F7_AND		: std_logic_vector(6 downto 0):="0000000";
 	
+	
+	
+	--  AXI 4 lite constant
+	constant C_IACCESS 	: std_logic_vector(2 downto 0):="100";
+	constant C_DACCESS	: std_logic_vector(2 downto 0):="000";
+	
 end poulpi32_pkg;
 	
