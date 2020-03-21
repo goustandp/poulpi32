@@ -1,18 +1,16 @@
 entity poulpi32_load_fetch is
-  generic(
-    G_ADDR_WIDTH : integer:= 32
-  );
   port(
     -- clock and reset
     CLK             : in  std_logic;
     RSTN            : in  std_logic;
     -- core signals
-    PROGAM_COUNTER  : in  std_logic_vector(G_ADDR_WIDTH-1 downto 0);
+    PROGAM_COUNTER  : in  std_logic_vector(31 downto 0);
     OP_CODE         : in  std_logic_vector(2 downto 0);
     RS_1            : in  std_logic_vector(31 downto 0);
     RS_2            : in  std_logic_vector(31 downto 0);
     IMM             : in  std_logic_vector(31 downto 0); -- immediate value signed extended
-    OUT_VALUE       : out std_logic_vector(31 downto 0);
+    RD              : out std_logic_vector(31 downto 0);
+    WE              : out std_logic;
     -- control signals
     START_LOAD      : in  std_logic;
     START_STORE     : in  std_logic;
@@ -21,7 +19,7 @@ entity poulpi32_load_fetch is
     -- write access
     AXI_AWVALID     : out std_logic;
     AXI_AWREADY     : in   std_logic;
-    AXI_AWADDR      : out std_logic_vector(G_ADDR_WIDTH-1 downto 0);
+    AXI_AWADDR      : out std_logic_vector(31 downto 0);
     AXI_AWPROT      : out std_logic_vector(2 downto 0);
     AXI_WVALID      : out std_logic;
     AXI_WREADY      : in  std_logic;
@@ -33,7 +31,7 @@ entity poulpi32_load_fetch is
     --read access
     AXI_ARVALID     : out std_logic;
     AXI_ARREADY     : in  std_logic;
-    AXI_ARADDR      : out std_logic_vector(G_ADDR_WIDTH-1 downto 0);
+    AXI_ARADDR      : out std_logic_vector(31 downto 0);
     AXI_ARPROT      : out std_logic_vector(2 downto 0);
     AXI_RVALID      : in  std_logic;
     AXI_RREADY      : out std_logic;
@@ -44,7 +42,7 @@ end entity poulpi32_load_fetch;
 
 architecture rtl of poulpi32_load_fetch is
   -- signals for axi
-  signal axi_addr_i               : std_logic_vector(G_ADDR_WIDTH-1 downto 0)
+  signal axi_addr_i               : std_logic_vector(31 downto 0)
   signal axi_awvalid_i            : std_logic;
   signal axi_wvalid_i             : std_logic;
   signal axi_bready_i             : std_logic;
@@ -76,13 +74,14 @@ begin
   P_LOAD_STORE_FETCH  : process(CLK)
     variable v_axi_addr  : signed(32 downto 0);
   begin
-    if risign_edge(CLK) then
+    if rising_edge(CLK) then
       if (RSTN = '0') then
         --outputs
-        OUT_VALUE       <= (others => '0');
+        RD              <= (others => '0');
         AXI_WDATA       <= (others => '0');
         AXI_WSTRB       <= (others => '0');
         READY           <= '1';
+        WE              <= '0';
         -- internals signals
         axi_addr_i         <= (others => '0');
         axi_awvalid_i      <= '0';
@@ -91,6 +90,8 @@ begin
         axi_arvalid_i      <= '0';
         axi_rready_i       <= '0';
       else
+      
+        WE  <= '0';
       
         if (START_LOAD ='1' or START_STORE = '1') then
           v_axi_addr      :=signed(RS_1)+signed(IMM);
@@ -114,7 +115,8 @@ begin
             if (axi_rready_i = '1' and AXI_RVALID = '1') then
               axi_rready_i  <= '0';
               READY         <= '1';
-              OUT_VALUE     <= std_logic_vector(resize(signed(AXI_RDATA((to_integer(addr_offset)+1)*8-1 downto to_integer(addr_offset)*8))));
+              RD            <= std_logic_vector(resize(signed(AXI_RDATA((to_integer(addr_offset)+1)*8-1 downto to_integer(addr_offset)*8))));
+              WE            <= '1';
             end if;
 
           when C_F3_LH => 
@@ -122,8 +124,8 @@ begin
             if (axi_rready_i = '1' and AXI_RVALID = '1') then
               axi_rready_i  <= '0';
               READY         <= '1';
-              OUT_VALUE   <= resize(signed(AXI_RDATA((to_integer(addr_offset)+2)*8-1 downto to_integer(addr_offset)*8)));
-
+              RD            <= resize(signed(AXI_RDATA((to_integer(addr_offset)+2)*8-1 downto to_integer(addr_offset)*8)));
+              WE            <= '1';
             end if;
 
           when C_F3_LW => 
@@ -132,7 +134,8 @@ begin
             if (axi_rready_i = '1' and AXI_RVALID = '1') then
               axi_rready_i  <= '0';
               READY         <= '1';
-              OUT_VALUE     <= AXI_RDATA;
+              RD            <= AXI_RDATA;
+              WE            <= '1';
             end if;
           
           when C_F3_LBU => 
@@ -140,7 +143,8 @@ begin
             if (axi_rready_i = '1' and AXI_RVALID = '1') then
               axi_rready_i  <= '0';
               READY         <= '1';
-              OUT_VALUE     <= resize(unsigned(AXI_RDATA((to_integer(addr_offset)+1)*8-1 downto to_integer(addr_offset)*8)));
+              RD            <= resize(unsigned(AXI_RDATA((to_integer(addr_offset)+1)*8-1 downto to_integer(addr_offset)*8)));
+              WE            <= '1';
             end if;
 
           when C_F3_LHU => 
@@ -148,8 +152,8 @@ begin
             if (axi_rready_i = '1' and AXI_RVALID = '1') then
               axi_rready_i  <= '0';
               READY         <= '1';
-              OUT_VALUE  <= resize(unsigned(AXI_RDATA((to_integer(addr_offset)+2)*8-1 downto to_integer(addr_offset)*8)));
-
+              RD            <= resize(unsigned(AXI_RDATA((to_integer(addr_offset)+2)*8-1 downto to_integer(addr_offset)*8)));
+              WE            <= '1';
             end if;
 
           when C_F3_SB =>
@@ -228,4 +232,6 @@ begin
         
       end if;
     end if;
-  end process;
+  end process P_LOAD_STORE_FETCH;
+
+end rtl;

@@ -85,28 +85,18 @@ package poulpi32_pkg is
   constant C_F3_SH    : std_logic_vector(2 downto 0):="001";
   constant C_F3_SW    : std_logic_vector(2 downto 0):="010";
   
-  -- imediat arithemtic 
-  constant C_F3_ADDI  : std_logic_vector(2 downto 0):="000";
-  constant C_F3_SLTI  : std_logic_vector(2 downto 0):="010";
-  constant C_F3_SLTIU : std_logic_vector(2 downto 0):="011";
-  constant C_F3_XORI  : std_logic_vector(2 downto 0):="100";
-  constant C_F3_ORI   : std_logic_vector(2 downto 0):="110";
-  constant C_F3_ANDI  : std_logic_vector(2 downto 0):="111";
-  constant C_F3_SLLI  : std_logic_vector(2 downto 0):="001";
-  constant C_F3_SRLI  : std_logic_vector(2 downto 0):="101";
-  constant C_F3_SRAI  : std_logic_vector(2 downto 0):="101"; --f5 is different...
+  -- arithemtic 
+  constant C_F3_ADDI  : std_logic_vector(2 downto 0):="1000";
+  constant C_F3_SLTI  : std_logic_vector(2 downto 0):="1010";
+  constant C_F3_SLTIU : std_logic_vector(2 downto 0):="1011";
+  constant C_F3_XORI  : std_logic_vector(2 downto 0):="1100";
+  constant C_F3_ORI   : std_logic_vector(2 downto 0):="1110";
+  constant C_F3_ANDI  : std_logic_vector(2 downto 0):="1111";
+  constant C_F3_SLLI  : std_logic_vector(2 downto 0):="1001";
+  constant C_F3_SRLI  : std_logic_vector(2 downto 0):="1101";
+  constant C_F3_SRAI  : std_logic_vector(2 downto 0):="1101"; --f7 is different...
   
-  -- register arithmetic
-  constant C_F3_ADD   : std_logic_vector(2 downto 0):="000";
-  constant C_F3_SUB   : std_logic_vector(2 downto 0):="000";
-  constant C_F3_SLL   : std_logic_vector(2 downto 0):="001";
-  constant C_F3_SLT   : std_logic_vector(2 downto 0):="010";
-  constant C_F3_SLTU  : std_logic_vector(2 downto 0):="011";
-  constant C_F3_XOR   : std_logic_vector(2 downto 0):="100";
-  constant C_F3_SRL   : std_logic_vector(2 downto 0):="101";
-  constant C_F3_SRA   : std_logic_vector(2 downto 0):="101";
-  constant C_F3_OR    : std_logic_vector(2 downto 0):="110";
-  constant C_F3_AND   : std_logic_vector(2 downto 0):="111";
+
   
   -- external
   constant C_F3_EXT   : std_logic_vector(2 downto 0):="000";
@@ -145,6 +135,54 @@ package poulpi32_pkg is
   constant C_EXOKAY     : std_logic_vector(1 downto 0):="01";
   constant C_SLVERR     : std_logic_vector(1 downto 0):="10";
   constant C_DECERR     : std_logic_vector(1 downto 0):="11";
+  
+  
+  ----------------------------------------------------------------------
+  -- function 
+  ----------------------------------------------------------------------
+  -- reverse range of a std logic vector
+  function slv_reverse_range(a : in std_logic_vector)
+    variable v_high   : integer:= a'high;
+    variable v_result : std_logic_vector(a'high downto 0);
+    begin
+      for i in 0 to v_high loop
+        v_result(i) := a(v_high - i);
+      end loop;
+      return v_result;
+    end;
+  
+  -- compute global xor of a std_logic_vector
+  function slv_global_xor(a : in std_logic_vector, b : in std_logic_vector)
+    variable v_high   : integer:= a'high;
+    variable v_result : std_logic_vector(a'high downto 0);
+    begin
+      for i in 0 to v_high loop
+        v_result(i) := a(i) xor b(i);
+      end loop;
+      return v_result;
+    end;
+    
+  -- compute global or of a std_logic_vector
+  function slv_global_or(a : in std_logic_vector, b : in std_logic_vector)
+    variable v_high   : integer:= a'high;
+    variable v_result : std_logic_vector(a'high downto 0);
+    begin
+      for i in 0 to v_high loop
+        v_result(i) := a(i) or b(i);
+      end loop;
+      return v_result;
+    end;
+    
+    -- compute global or of a std_logic_vector
+  function slv_global_and(a : in std_logic_vector, b : in std_logic_vector)
+    variable v_high   : integer:= a'high;
+    variable v_result : std_logic_vector(a'high downto 0);
+    begin
+      for i in 0 to v_high loop
+        v_result(i) := a(i) and b(i);
+      end loop;
+      return v_result;
+    end;
   
 end poulpi32_pkg;
   
