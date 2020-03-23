@@ -49,7 +49,7 @@ architecture rtl of poulpi32_load_fetch is
   signal axi_arvalid_i            : std_logic;
   signal axi_rready_i             : std_logic;
 
-  signal addr_offset              : unsigned(1 downto 0);
+  signal addr_offset              : integer range 0 to 3;
 
 
 
@@ -57,8 +57,6 @@ begin
   -- axi4 lite protocol is used in half dupex
   AXI_ARADDR            <= axi_addr_i;
   AXI_AWADDR            <= axi_addr_i;
-  
-  addr_offset           <= unsigned(axi_addr_i(1 downto 0));
   
 
   AXI_AWPROT            <= C_DACCESS;
@@ -89,6 +87,7 @@ begin
         axi_bready_i       <= '0';
         axi_arvalid_i      <= '0';
         axi_rready_i       <= '0';
+        addr_offset        <= 0;
       else
       
         WE  <= '0';
@@ -96,114 +95,86 @@ begin
         if (START_LOAD ='1' or START_STORE = '1') then
           v_axi_addr      :=signed(RS_1)+signed(IMM);
           axi_addr_i      <= std_logic_vector(v_axi_addr(31 downto 2))&"00";
+          addr_offset     <= to_integer(unsigned(v_axi_addr(1 downto 0)));
+          AXI_WDATA       <= (others => '0');
           READY           <= '0';
         end if;
         
+        --start load
         if (START_LOAD = '1') then
           axi_arvalid_i   <= '1';
           axi_rready_i    <= '1';
         end if;
-
+        
+        --begin store by sending address
         if (START_STORE = '1') then
           axi_awvalid_i   <= '1';
           axi_bready_i    <= '1';
         end if;
 
-        case OP_CODE is
-        -- load signed byte
-          when C_F3_LB  =>
-            if (axi_rready_i = '1' and AXI_RVALID = '1') then
-              axi_rready_i  <= '0';
-              READY         <= '1';
-              RD            <= std_logic_vector(resize(signed(AXI_RDATA((to_integer(addr_offset)+1)*8-1 downto to_integer(addr_offset)*8))));
-              WE            <= '1';
-            end if;
-
-          when C_F3_LH => 
+        if (axi_rready_i = '1' and AXI_RVALID = '1') then --load started
+          WE            <= '1';
+          READY         <= '1';
+          axi_rready_i  <= '0';
+          --decode instruction
+          case OP_CODE is
+          -- load signed byte
+            when C_F3_LB  =>
+              RD            <= std_logic_vector(resize(signed(AXI_RDATA((addr_offset+1)*8-1 downto addr_offset*8))));
+              
             --load signed half
-            if (axi_rready_i = '1' and AXI_RVALID = '1') then
-              axi_rready_i  <= '0';
-              READY         <= '1';
-              RD            <= resize(signed(AXI_RDATA((to_integer(addr_offset)+2)*8-1 downto to_integer(addr_offset)*8)));
-              WE            <= '1';
-            end if;
-
-          when C_F3_LW => 
+            when C_F3_LH => 
+              RD            <= resize(signed(AXI_RDATA((addr_offset+2)*8-1 downto addr_offset*8)));
+            
             -- load word
-            -- adress must be aligned
-            if (axi_rready_i = '1' and AXI_RVALID = '1') then
-              axi_rready_i  <= '0';
-              READY         <= '1';
+            when C_F3_LW => 
               RD            <= AXI_RDATA;
-              WE            <= '1';
-            end if;
-          
-          when C_F3_LBU => 
+
             --load byte as unsigned
-            if (axi_rready_i = '1' and AXI_RVALID = '1') then
-              axi_rready_i  <= '0';
-              READY         <= '1';
-              RD            <= resize(unsigned(AXI_RDATA((to_integer(addr_offset)+1)*8-1 downto to_integer(addr_offset)*8)));
-              WE            <= '1';
-            end if;
+            when C_F3_LBU => 
+              RD            <= resize(unsigned(AXI_RDATA((addr_offset+1)*8-1 downto addr_offset*8)));
 
-          when C_F3_LHU => 
-            -- load half as unsigned
-            if (axi_rready_i = '1' and AXI_RVALID = '1') then
-              axi_rready_i  <= '0';
-              READY         <= '1';
-              RD            <= resize(unsigned(AXI_RDATA((to_integer(addr_offset)+2)*8-1 downto to_integer(addr_offset)*8)));
-              WE            <= '1';
-            end if;
+            when C_F3_LHU => 
+              -- load half as unsigned
+              RD            <= resize(unsigned(AXI_RDATA((addr_offset+2)*8-1 downto addr_offset*8)));
+                
+            when others => 
+              READY <= '0';
+            end case;
+        end if;
 
-          when C_F3_SB =>
-            -- store byte
-            if (axi_wvalid_i = '1') then  -- store started
-              AXI_WDATA                           <= resize(unsigned(RS_2(7 downto 0)), 32);
-              AXI_WSTRB(to_integer(addr_offset))  <= '1';
-              axi_wvalid_i                        <= '1';
-            end if;
-            
-            if (axi_wvalid_i = '1' and AXI_WREADY = '1') then
-              axi_wvalid_i  <= '0';
-              READY         <= '1';
-              AXI_WSTRB     <= (others => '0');
-            end if;
-            
-            
-          when C_F3_SH  =>
-            -- store half
-            if (axi_wvalid_i = '1') then  -- store started
-              AXI_WDATA                                                             <= resize(unsigned(RS_2(15 downto 0)), 32);
-              AXI_WSTRB(to_integer(addr_offset)+1 downto to_integer(addr_offset))   <= "11";
-              axi_wvalid_i                                                          <= '1';
-            end if;
-            
-            if (axi_wvalid_i = '1' and AXI_WREADY = '1') then
-              axi_wvalid_i  <= '0';
-              READY         <= '1';
-              AXI_WSTRB     <= (others => '0');
-            end if;
-            
-            
-          when C_F3_SW  => 
+         -- store started
+        if (axi_awvalid_i = '1') then 
+          axi_wvalid_i                        <= '1';
+          --decode instruction
+          case OP_CODE is 
+          -- store byte
+            when C_F3_SB =>
+              AXI_WDATA(8*(addr_offset+1)-1 downto (8*addr_offset)) <= RS_2(7 downto 0);
+              AXI_WSTRB(addr_offset)                                <= '1';
+                
+            -- store half 
+            when C_F3_SH  =>  
+              AXI_WDATA(8*(addr_offset+2)-1 downto (8*addr_offset)) <= RS_2(7 downto 0);
+              AXI_WSTRB(addr_offset+1 downto addr_offset)           <= "11";
+              
             -- store word
-            if (axi_wvalid_i = '1') then  -- store started
+            when C_F3_SW  => 
               AXI_WDATA       <= RS_2;
               AXI_WSTRB       <= "1111";
-              axi_wvalid_i    <= '1';
-            end if;
-            
-            if (axi_wvalid_i = '1' and AXI_WREADY = '1') then
-              axi_wvalid_i  <= '0';
-              READY         <= '1';
-              AXI_WSTRB     <= (others => '0');
-            end if;
-            
-            
-          when others =>
-            READY <= '0';
-        end case;
+                         
+            when others =>
+              READY <= '0';
+          end case;
+        end if;
+  
+        -- store OK
+        if (axi_wvalid_i = '1' and AXI_WREADY = '1') then
+          axi_wvalid_i  <= '0';
+          READY         <= '1';
+          AXI_WSTRB     <= (others => '0');
+        end if;
+
 
         -- read adress ok
         if (axi_arvalid_i = '1' and AXI_ARREADY = '1') then
@@ -229,6 +200,8 @@ begin
             READY <= '0';
           end if;
         end if;
+        
+
         
       end if;
     end if;

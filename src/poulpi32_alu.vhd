@@ -42,6 +42,7 @@ architecture rtl of poulpi32 _alu is
   signal operande_a       : std_logic_vector(31 downto 0);
   signal operande_b       : std_logic_vector(31 downto 0);
   signal comp_result      : std_logic;
+  signal comp_resultu     : std_logic;
   signal adder_result     : unsigned(31 downto 0);
   signal or_result        : std_logic_vector(31 downto 0);
   signal xor_result       : std_logic_vector(31 downto 0);
@@ -49,7 +50,7 @@ architecture rtl of poulpi32 _alu is
   
 
   signal ready_i          : std_logic;
-  
+  signal ready_i_r        : std_logic;
   
   
 begin 
@@ -70,6 +71,7 @@ begin
         cnt_shift       <= (others => '0');
         WE              <= '0';
         ready_i         <= '1';
+        ready_i_r       <= '1';
         operande_a      <= (others => '0');
         operande_b      <= (others => '0');
         comp_result     <= '0';
@@ -84,7 +86,7 @@ begin
         -- write enable pulse
         WE  <= '0';
         
-        -- shifter (cold be replace by a barrel shifter)
+        -- shifter (could be replace by a barrel shifter)
         if (cnt_shift  /=0) then
           shifter   <= shifter(31 downto 1)&bit_shift;
           cnt_shift <= cnt_shift-1;
@@ -95,10 +97,17 @@ begin
         
         --comp
         if (unsigned(operande_b) < unsigned(operande_a)) then
+          comp_resultu <= '1';
+        else
+          comp_resultu <= '0';
+        end if;
+        
+        if (signed(operande_b) < signed(operande_a)) then
           comp_result <= '1';
         else
           comp_result <= '0';
         end if;
+        
         
         -- compute or bitwise
         or_result   <= slv_global_or(operande_a, operande_b);
@@ -108,6 +117,15 @@ begin
         
         -- compute and bitwise
         and_result  <= slv_global_and(operande_a, operande_b);
+        
+        -- register ready and manage op done
+        if (ready_i_r = '0' and cnt_shift =0) then
+          ready_i_r <= '1';
+          ready_i   <= '1';
+          WE        <= '1';
+        else
+          ready_i_r <= ready_i;
+        end if;
         
         -- start immediat operation
         if (START_IMM = '1') then
@@ -130,35 +148,19 @@ begin
         case OP_CODE is 
           -- add immediat
           when C_F3_ADD  =>
-            --sub
+            --sub (to be impoved)
             if (START_REG ='1' and C_F7_SUB = '1') then
               operande_b  <= std_logic_vector(unsigned(not(RS_1)) + 1); -- two's complement
             end if;
             
-            if (ready_i = '0') then
-              ready_i     <= '1';
+            if (ready_i_r = '0') then
               RD          <= adder_result;
-              WE          <= '1';
             end if;
           
           -- set less than 
           when C_F3_SLT =>
-            if (ready_i = '0') then
-              ready_i     <= '1';
-              WE          <= '1';
-              
-              --both negative
-              if (operande_a(31) = '1' and operande_b(31) = '1') then 
-                RD(0)   <= not(comp_result);
-              -- both positive
-              elsif (operande_a(31) = '0' and operande_b(31) = '0') then 
-                RD(0)   <= comp_result;
-              -- b positive and a negative
-              elsif (operande_b(31) = '0')                              
-                RD(0)   <= '1';
-              -- a positive and b negative
-              else                          
-                RD(0)   <= '0';
+            if (ready_i_r = '0') then
+              RD(0)   <= comp_result;
             end if;
           
           
@@ -168,34 +170,26 @@ begin
               operande_b  <= IMMU;
             end if;
             
-            if (ready_i ='0') then
-              ready_i     <= '1';
-              RD(0)       <= comp_result;
-              WE          <= '1';
+            if (ready_i_r ='0') then
+              RD(0)       <= comp_resultu;
             end if;
           
-          -- xor immedia
+          -- xor immediat
           when C_F3_XOR => 
-            if (ready_i ='0') then
-              ready_i     <= '1';
-              RD(0)       <= xor_result;
-              WE          <= '1';
+            if (ready_i_r ='0') then
+              RD           <= xor_result;
             end if;
           
           -- or immediat
           when C_F3_OR   => 
-            if (ready_i ='0') then
-              ready_i     <= '1';
+            if (ready_i_r ='0') then
               RD(0)       <= or_result;
-              WE          <= '1';
             end if;
           
           -- and immediat
           when C_F3_AND  =>
-            if (ready_i ='0') then
-              ready_i     <= '1';
+            if (ready_i_r ='0') then
               RD(0)       <= and_result;
-              WE          <= '1';
             end if;
             
           -- shift left logical
@@ -216,8 +210,7 @@ begin
             -- logical shift
             bit_shift <= '0';
             
-            if (ready_i = '0' and cnt_shift = 0) then
-              WE  <= '1';
+            if (ready_i_r = '0' and cnt_shift = 0) then
               RS  <= shifter;
             end if;
           
@@ -242,13 +235,16 @@ begin
               bit_shift <= '0';
             end if;
             
-            if (ready_i = '0' and cnt_shift = 0) then
-              WE      <= '1';
-              ready_i <= '1';
+            if (ready_i_r = '0' and cnt_shift = 0) then
               RS      <= shifter_reverse;
             end if;
+            
           when others => 
-            ready_i <= '0';
+            -- illegal instruction
+            if (START_REG = '1' or START_IMM = '1') then
+              ready_i   <= '0';
+              ready_i_r <= '1';
+            end if:
           end case;
       end if;
     end if;
