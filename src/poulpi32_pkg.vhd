@@ -124,7 +124,12 @@ package poulpi32_pkg is
   constant C_F7_SRA     : std_logic_vector(6 downto 0):="0100000";
   constant C_F7_OR      : std_logic_vector(6 downto 0):="0000000";
   constant C_F7_AND     : std_logic_vector(6 downto 0):="0000000";
-  
+
+  -- internals constant
+  constant C_LSU_ID     : std_logic_vector(1 downto 0):="00";
+  constant C_ALU_ID     : std_logic_vector(1 downto 0):="01";
+  constant C_BR_ID      : std_logic_vector(1 downto 0):="10";
+  constant C_MU_ID      : std_logic_vector(1 downto 0):="11";
   
   ----------------------------------------------------------------------
   --  AXI 4 lite constant
@@ -135,6 +140,7 @@ package poulpi32_pkg is
   constant C_EXOKAY     : std_logic_vector(1 downto 0):="01";
   constant C_SLVERR     : std_logic_vector(1 downto 0):="10";
   constant C_DECERR     : std_logic_vector(1 downto 0):="11";
+
   
   
   ----------------------------------------------------------------------
