@@ -4,7 +4,6 @@ entity poulpi32_load_fetch is
     CLK             : in  std_logic;
     RSTN            : in  std_logic;
     -- core signals
-    PROGAM_COUNTER  : in  std_logic_vector(31 downto 0);
     OP_CODE         : in  std_logic_vector(2 downto 0);
     RS_1            : in  std_logic_vector(31 downto 0);
     RS_2            : in  std_logic_vector(31 downto 0);

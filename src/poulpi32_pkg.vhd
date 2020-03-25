@@ -129,7 +129,7 @@ package poulpi32_pkg is
   constant C_LSU_ID     : std_logic_vector(1 downto 0):="00";
   constant C_ALU_ID     : std_logic_vector(1 downto 0):="01";
   constant C_BR_ID      : std_logic_vector(1 downto 0):="10";
-  constant C_MU_ID      : std_logic_vector(1 downto 0):="11";
+  constant C_DC_ID      : std_logic_vector(1 downto 0):="11";
   
   ----------------------------------------------------------------------
   --  AXI 4 lite constant

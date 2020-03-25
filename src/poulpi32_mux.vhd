@@ -22,10 +22,10 @@ entity poulpi32_mux is
     BR_RD     : in  std_logic_vector(31 downto 0);
     BR_WE     : in  std_logic;
     
-    MU_RS_1   : out std_logic_vector(31 downto 0);
-    MU_RS_2   : out std_logic_vector(31 downto 0);
-    MU_RD     : in  std_logic_vector(31 downto 0);
-    MU_WE     : in  std_logic
+    DC_RS_1   : out std_logic_vector(31 downto 0);
+    DC_RS_2   : out std_logic_vector(31 downto 0);
+    DC_RD     : in  std_logic_vector(31 downto 0);
+    DC_WE     : in  std_logic
   );
 end entity poulpi32_mux;
 
@@ -44,19 +44,19 @@ begin
   BR_RS_1   <= REG_RS_1;
   BR_RS_2   <= REG_RS_2;
   
-  MU_RS_1   <= REG_RS_1;
-  MU_RS_2   <= REG_RS_2;
+  DC_RS_1   <= REG_RS_1;
+  DC_RS_2   <= REG_RS_2;
 
   -- mux rd reg
   REG_RD    <=  LSU_RD  when  (ID = C_LSU_ID) else
                 ALU_RD  when  (ID = C_ALU_ID) else
                 BR_RD   when  (ID = C_BR_ID)  else
-                MU_RD;
+                DC_RD;
       
     
   REG_WE    <=  LSU_WE  when  (ID = C_LSU_ID) else
                 ALU_WE  when  (ID = C_ALU_ID) else
                 BR_WE   when  (ID = C_BR_ID)  else
-                MU_WE;
+                DC_WE;
      
   end rtl;
