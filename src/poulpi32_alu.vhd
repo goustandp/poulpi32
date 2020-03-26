@@ -6,19 +6,21 @@ entity poulpi32_alu is
     CLK         : in  std_logic;
     RSTN        : in  std_logic;
     
+    -- registers and immediat values
     RS_1        : in  std_logic_vector(31 downto 0);
     RS_2        : in  std_logic_vector(31 downto 0);
     RD          : out std_logic_vector(31 downto 0);
     IMM         : in  std_logic_vector(31 downto 0); --signed extended
     IMMU        : in  std_logic_vector(31 downto 0);
-    
     SHAMT       : in  std_logic_vector(4 downto 0);
     
+    -- constrol signals
     READY       : out std_logic;
     START_REG   : in  std_logic;
     START_IMM   : in  std_logic;
     WE          : out std_logic;
     
+    -- op codes
     OP_CODE     : in  std_logic_vector(2 downto 0);
     OP_CODE_F7  : in  std_logic_vector(6 downto 0)
   );

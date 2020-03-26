@@ -55,7 +55,7 @@ begin
     else
       
       -- compute next pc
-      branch_pc <= std_logic_vector(signed(IMM)+unsigned(PC)); 
+      branch_pc     <= std_logic_vector(signed(IMM)+unsigned(PC)); 
       not_branch_pc <= std_logic_vector(unsigned(PC) + 4);
       
       -- comp result 
@@ -93,7 +93,8 @@ begin
         ready_i     <= '0';
       end if;
       
-
+      -- defalut is branch not taken
+      NEXT_PC <= not_branch_pc;
       
       case OP_CODE is 
         -- branch if equal
@@ -101,8 +102,6 @@ begin
           if (ready_i_r = '0') then
             if (is_equal = '1') then
               NEXT_PC <= branch_pc;
-            else
-              NEXT_PC <= not_branch_pc;
             end if;
           end if;
         
@@ -111,8 +110,6 @@ begin
           if (ready_i_r = '0') then
             if (is_equal = '0') then
               NEXT_PC <= branch_pc;
-            else
-              NEXT_PC <= not_branch_pc;
             end if;
           end if;
           
@@ -121,8 +118,6 @@ begin
           if (ready_i_r = '0') then
             if (comp_result = '1') then
               NEXT_PC <= branch_pc;
-            else
-              NEXT_PC <= not_branch_pc;
             end if;
           end if;
         
@@ -131,8 +126,6 @@ begin
           if (ready_i_r = '0') then
             if (comp_result = '0') then
               NEXT_PC <= branch_pc;
-            else
-              NEXT_PC <= not_branch_pc;
             end if;
           end if;
         
@@ -141,8 +134,6 @@ begin
           if (ready_i_r = '0') then
             if (comp_resultu = '1') then
               NEXT_PC <= branch_pc;
-            else
-              NEXT_PC <= not_branch_pc;
             end if;
           end if;
         
@@ -151,8 +142,6 @@ begin
           if (ready_i_r = '0') then
             if (comp_resultu = '0') then
               NEXT_PC <= branch_pc;
-            else
-              NEXT_PC <= not_branch_pc;
             end if;
           end if;
         

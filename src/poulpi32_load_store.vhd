@@ -1,4 +1,4 @@
-entity poulpi32_load_fetch is
+entity poulpi32_load_store is
   port(
     -- clock and reset
     CLK             : in  std_logic;
@@ -37,9 +37,9 @@ entity poulpi32_load_fetch is
     AXI_RDATA       : in  std_logic_vector(31 downto 0);
     AXI_RESP        : in  std_logic_vector(1 downto 0)
   );
-end entity poulpi32_load_fetch;
+end entity poulpi32_load_store;
 
-architecture rtl of poulpi32_load_fetch is
+architecture rtl of poulpi32_load_store is
   -- signals for axi
   signal axi_addr_i               : std_logic_vector(31 downto 0)
   signal axi_awvalid_i            : std_logic;
@@ -68,7 +68,7 @@ begin
   AXI_RREADY            <= axi_rready_i;
 
 
-  P_LOAD_STORE_FETCH  : process(CLK)
+  P_LOAD_STORE  : process(CLK)
     variable v_axi_addr  : signed(32 downto 0);
   begin
     if rising_edge(CLK) then
@@ -204,6 +204,6 @@ begin
         
       end if;
     end if;
-  end process P_LOAD_STORE_FETCH;
+  end process P_LOAD_STORE;
 
 end rtl;
