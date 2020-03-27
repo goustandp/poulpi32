@@ -168,6 +168,8 @@ architecture rtl of poulpi32_core is
           
       RS_1      : in  std_logic_vector(31 downto 0);
       RS_2      : in  std_logic_vector(31 downto 0);
+      RD        : out std_logic_vector(31 downto 0);
+      WE        : out std_logic;
           
       IMM       : in  std_logic_vector(31 downto 0);
       PC        : in  std_logic_vector(31 downto 0);
@@ -427,16 +429,19 @@ begin
   ----------------------------------------------------------------------
   inst_poulpi32_branch : poulpi32_branch
     port map(
-      CLK       => CLK,
-      RSTN      => RSTN,
-      RS_1      => br_rs_1,
-      RS_2      => br_rs_2,
-      IMM       => branch_imm,
-      PC        => branch_pc,
-      NEXT_PC   => branch_next_pc,
-      OP_CODE   => branch_op_code,
-      START     => branch_start,
-      READY     => branch_ready
+      CLK         => CLK,
+      RSTN        => RSTN,
+      RS_1        => br_rs_1,
+      RS_2        => br_rs_2,
+      RD          => br_rd,
+      WE          => br_we,
+      IMM         => branch_imm,
+      PC          => branch_pc,
+      NEXT_PC     => branch_next_pc,
+      OP_CODE_F3  => branch_op_code_f3,
+      OP_CODE     => branch_op_code,
+      START       => branch_start,
+      READY       => branch_ready
     );
 
 

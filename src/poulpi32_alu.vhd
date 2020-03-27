@@ -21,7 +21,7 @@ entity poulpi32_alu is
     WE          : out std_logic;
     
     -- op codes
-    OP_CODE     : in  std_logic_vector(2 downto 0);
+    OP_CODE_F3  : in  std_logic_vector(2 downto 0);
     OP_CODE_F7  : in  std_logic_vector(6 downto 0)
   );
 end entity poulpi32_alu;
@@ -147,10 +147,10 @@ begin
         end if;
         
         -- decode micro ops
-        case OP_CODE is 
+        case OP_CODE_F3 is 
           -- add immediat
           when C_F3_ADD  =>
-            --sub (to be impoved)
+            --sub (to be improved)
             if (START_REG ='1' and C_F7_SUB = '1') then
               operande_b  <= std_logic_vector(unsigned(not(RS_1)) + 1); -- two's complement
             end if;

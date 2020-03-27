@@ -8,12 +8,15 @@ entity poulpi32_branch is
         
     RS_1      : in  std_logic_vector(31 downto 0);
     RS_2      : in  std_logic_vector(31 downto 0);
+    RD        : out std_logic_vector(31 downto 0);
+    WE        : out std_logic;
         
     IMM       : in  std_logic_vector(31 downto 0);
     PC        : in  std_logic_vector(31 downto 0);
     NEXT_PC   : out std_logic_vector(31 downto 0);
     
-    OP_CODE   : in  std_logic_vector(2 downto 0);
+    OP_CODE_F3: in  std_logic_vector(2 downto 0);
+    OP_CODE   : in  std_logic_vector(6 downto 0);
     START     : in  std_logic;
     READY     : out std_logic
   );
@@ -24,6 +27,8 @@ architecture rtl of poulpi32_branch is
   
   signal operande_a     : std_logic_vector(31 downto 0);
   signal operande_b     : std_logic_vector(31 downto 0);
+  signal add_operande_a : unsigned(31 downto 0);
+  signal add_operande_b : unsigned(31 downto 0);
   signal branch_pc      : std_logic_vector(31 downto 0);
   signal not_branch_pc  : std_logic_vector(31 downto 0);
   
@@ -55,7 +60,7 @@ begin
     else
       
       -- compute next pc
-      branch_pc     <= std_logic_vector(signed(IMM)+unsigned(PC)); 
+      branch_pc     <= std_logic_vector(add_operande_a + add_operande_b); 
       not_branch_pc <= std_logic_vector(unsigned(PC) + 4);
       
       -- comp result 
@@ -88,15 +93,17 @@ begin
       
       -- start op
       if (START = '1') then
-        operande_b  <= RS_1;
-        operande_a  <= RS_2;  
-        ready_i     <= '0';
+        operande_b      <= RS_1;
+        operande_a      <= RS_2;  
+        add_operande_a  <= unsigned(IMM);
+        add_operande_b  <= unsigned(PC);
+        ready_i         <= '0';
       end if;
       
       -- defalut is branch not taken
       NEXT_PC <= not_branch_pc;
       
-      case OP_CODE is 
+      case OP_CODE_F3 is 
         -- branch if equal
         when C_F3_BEQ   => 
           if (ready_i_r = '0') then
@@ -151,6 +158,42 @@ begin
             ready_i   <= '0';
             ready_i_r <= '1';
           end if;
+        end case;
+      
+      -- jal, auipc and jalr
+      case OP_CODE is
+        -- add upper immefiat to pc
+        when C_OP_AUIPC =>
+          if (ready_i_r = '0') then
+            RD  <= branch_pc;
+            WE  <= '1';
+          end if;
+        
+        -- jump and link immediat
+        when C_OP_JAL =>
+          if (ready_i_r = '0') then
+            RD      <= not_branch_pc;
+            WE      <= '1';
+            NEXT_PC <= branch_pc;
+          end if;
+        
+        -- jump and link register 
+        when  C_OP_JALR =>
+          if (START = '1') then
+            add_operande_a  <= unsigned(RS_1);
+            add_operande_b  <= unsigned(RS_2);
+          end if;
+          
+          if (ready_i_r = '0') then
+            WE  <= '1';
+            RD  <= not_branch_pc;
+            NEXT_PC <= branch_pc;
+          end if;
+        
+        when others =>
+          WE  <= '0';
+        end case;
+        
       end if;
     end if;
   end process P_BRANCH;

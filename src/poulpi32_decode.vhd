@@ -17,10 +17,11 @@ entity poulpi32_decode is
     BRANCH_PC         : out std_logic_vector(31 downto 0);
     BRANCH_NEXT_PC    : in  std_logic_vector(31 downto 0);
     BRANCH_OP_CODE    : out std_logic_vector(2 downto  0);
+    BRANCH_OP_CODE_F3 : out std_logic_vector(6 downto  0);
     BRANCH_START      : out std_logic;
     BRANCH_READY      : in  std_logic
     -- load store signals
-    LSU_OP_CODE       : out std_logic_vector(2 downto 0);
+    LSU_OP_CODE_F3    : out std_logic_vector(2 downto 0);
     LSU_IMM           : out std_logic_vector(31 downto 0); 
     LSU_START_LOAD    : out std_logic;
     LSU_START_STORE   : out std_logic;
@@ -32,7 +33,7 @@ entity poulpi32_decode is
     ALU_READY         : in  std_logic;
     ALU_START_REG     : out std_logic;
     ALU_START_IMM     : out std_logic;
-    ALU_OP_CODE       : out std_logic_vector(2 downto 0);
+    ALU_OP_CODE_F3    : out std_logic_vector(2 downto 0);
     ALU_OP_CODE_F7    : out std_logic_vector(6 downto 0);
     -- mux signals
     MUX_ID            : out std_logic_vector(1 downto 0);
@@ -53,24 +54,13 @@ end entity poulpi32_decode;
 architecture rtl of poulpi32_decode is
 
   type t_state is  (ST_START, 
-                    ST_FETCH_WAIT,
+                    ST_WAIT,
                     ST_FETCH_WB,
-                    ST_DECODE,
-                    ST_AUIPC_WB,
-                    ST_JAL_WB,
-                    ST_JALR,
-                    ST_JALR_WB,
-                    ST_ALU_WAIT,
-                    ST_LSU_WAIT,
-                    ST_BR_WAIT,
-                    ST_BR_WB);
+                    ST_BRANCH_WAIT,
+                    ST_BRANCH_WB);
   
   signal decode_state : t_state;
-  signal pc             : unsigned(31 downto 0);
-  signal pc_jump        : unsigned(31 downto 0);
-  signal operande_a     : unsigned(31 downto 0);
-  signal operande_b     : unsigned(31 downto 0);
-  signal current_instr  : std_logic_vector(31 downto 0);
+  signal pc             : std_logic_vector(31 downto 0);
 
   signal op_code        : std_logic_vector(6 downto 0);
   signal op_code_f3     : std_logic_vector(2 downto 0);
@@ -82,29 +72,32 @@ architecture rtl of poulpi32_decode is
   signal j_imm          : std_logic_vector(11 downto 0);
   signal s_imm          : std_logic_vector(11 downto 0);
   signal u_imm          : std_logic_vector(31 downto 0);
-  signal shamt          : std_logic_vector(4 downto 0);
+  signal shamt          : std_logic_vector(4  downto 0);
+  signal rs1_id_i       : std_logic_vector(4  downto 0);
+  signal rs2_id_i       : std_logic_vector(4  downto 0);
+  signal rd_id_i        : std_logic_vector(4  downto 0);  
   
 begin 
   
   -- immediat value assignement
-  i_imm         <= current_instr(31 downto 20);
-  s_imm         <= current_instr(31 downto 25)&current_instr(11 downto 7);
-  u_imm         <= current_instr(31 downto 12)&x"000";
-  b_imm         <= current_instr(12)&current_instr(7)&current_instr(30 downto 25)&current_instr(11 downto 8)&"0";
-  j_imm         <= current_instr(31)&current_instr(19 downto 12)&current_instr(20)&current_instr(30 downto 21);
-  shamt         <= current_instr(23 downot 20);
+  i_imm         <= FETCH_INSTR(31 downto 20);
+  s_imm         <= FETCH_INSTR(31 downto 25)&FETCH_INSTR(11 downto 7);
+  u_imm         <= FETCH_INSTR(31 downto 12)&x"000";
+  b_imm         <= FETCH_INSTR(12)&FETCH_INSTR(7)&FETCH_INSTR(30 downto 25)&FETCH_INSTR(11 downto 8)&"0";
+  j_imm         <= FETCH_INSTR(31)&FETCH_INSTR(19 downto 12)&FETCH_INSTR(20)&FETCH_INSTR(30 downto 21);
+  shamt         <= FETCH_INSTR(23 downyo 20);
   
   --op code asignement
-  op_code       <= current_instr(6 downto 0);
-  op_code_f3    <= current_instr(14 downto 12);
-  op_code_f7    <= current_instr(31 downto 25);
+  op_code       <= FETCH_INSTR(6 downto 0);
+  op_code_f3    <= FETCH_INSTR(14 downto 12);
+  op_code_f7    <= FETCH_INSTR(31 downto 25);
   
   FETCH_PC      <= std_logic_vector(pc);
   BRANCH_PC     <= std_logic_vector(pc);
   
-  RS1_ID        <= current_instr(19 downto 15);
-  RS2_ID        <= current_instr(24 downto 20);
-  RD_ID         <= current_instr(11 downto 7);
+  rs1_id_i      <= FETCH_INSTR(19 downto 15);
+  rs2_id_i      <= FETCH_INSTR(24 downto 20);
+  rd_id_i       <= FETCH_INSTR(11 downto 7);
   
   P_DECODE : process(CLK)
   begin
@@ -113,8 +106,6 @@ begin
         --internal signals
         decode_state      <= ST_START;
         pc                <= (others => '0');
-        pc_next           <= (others => '0');
-        current_instr     <= (others => '0');
         -- output
         FETCH_START       <= '0';
         BRANCH_IMM        <= (others => '0');
@@ -144,187 +135,150 @@ begin
         ALU_START_IMM     <= '0';
         WE                <= '0';
         
-        -- next pc if jump 
-        pc_jump           <= operande_a + operande_b;
-        
+
         -- main state machine
         case decode_state is
           init state
           when ST_START =>
             pc            <= unsigned(G_PC_RST_VALUE);
             FETCH_START   <= '1';
-            decode_state  <= ST_FETCH_WAIT:
-          
-          -- wait for fetch unit
-          when ST_FETCH_WAIT  =>
-            decode_state  <= ST_FETCH_WB;
-          
-          -- wait for unit to be ready
+            decode_state  <= ST_WAIT:
+            
+         
           when ST_FETCH_WB =>
-            if (FETCH_READY = '1' and ALU_READY ='1' and and LSU_READY = '1') then
-              current_instr <= FETCH_INSTR;
-              decode_state  <= ST_DECODE;
-            end if;
-          
-          -- decode current instruction
-          when ST_DECODE  =>
-            case op_code is 
-            -- load upper immediate
-            -- rd <= imm &"000...0"
-              when C_OP_LUI =>
+            -- wait for unit to be ready and decode instruction
+            if (FETCH_READY = '1' and ALU_READY ='1' and LSU_READY = '1') then
+              --asign op code
+              ALU_OP_CODE_F3    <= op_code_f3;
+              ALU_OP_CODE_F7    <= op_code_f7;
+              LSU_OP_CODE_F3    <= op_code_f3;
+              BRANCH_OP_CODE_F3 <= op_code_f3;
+              BRANCH_OP_CODE    <= op_code;
+              
+              -- assign reg id
+              RS1_ID  <= rs1_id_i; 
+              RS2_ID  <= rs2_id_i; 
+              RD_ID   <= rd_id_i;
+              
+              -- decode op
+              case op_code is 
+                -- load upper immediate
+                -- rd <= imm &"000...0"
+                when C_OP_LUI =>
                   MUX_ID        <= C_DC_ID;
                   RD            <= u_imm;
+                  pc            <= BRANCH_PC_NEXT;
                   WE            <= '1';
                   FETCH_START   <= '1';
-                  decode_state  <= ST_FETCH_WAIT;
-            
+                  decode_state  <= ST_WAIT;
+              
 
-            -- add upper immediate
-            -- RD <= PC+imm &"000...0"
-             when C_OP_AUIPC  =>
-                operande_a    <= pc;
-                operande_b    <= unsigned(u_imm);
-                MUX_ID        <= C_DC_ID;
-                decode_state  <= ST_AUIPC_WB;
-                pc            <= BRANCH_PC_NEXT;
-                FETCH_START   <= '1';
+                -- add upper immediate
+                -- RD <= PC+imm &"000...0"
+                when C_OP_AUIPC  =>
+                  MUX_ID        <= C_BR_ID;
+                  BRANCH_IMM    <= u_imm;
+                  pc            <= BRANCH_PC_NEXT;
+                  FETCH_START   <= '1';
+                  BRANCH_START  <= '1';
+                  decode_state  <= ST_WAIT;
                 
-            -- jump and link
-            -- PC=PC+signed(imm)
-            -- store the address of pc+4 to rd
-             when C_OP_JAL  =>
-              operande_a    <= pc;
-              operande_b    <= unsigned(resize(signed(j_imm), 32));
-              MUX_ID        <= C_DC_ID;
-              decode_state  <= ST_JAL_WB;
-            
-            -- jump and link register
-            --ad offset to PC
-            -- offset=signed(rs1)+signed(imm)
-            -- store the address of pc+1 to rd
-             when C_OP_JALR  => 
-              MUX_ID          <= C_DC_ID;
-              decode_state    <= ST_JALR;
-            
-
-            -- consditionnal branch
-            -- PC <= PC+imm if condition
-            when  C_OP_BRANCH =>
-              BRANCH_OP_CODE  <= op_code_f3;
-              BRANCH_IMM      <= std_logic_vector(resize(signed(b_imm), 32));
-              BRANCH_START    <= '1';
-              MUX_ID          <= C_BR_ID;
-              decode_state    <= ST_BR_WAIT;
-
-            -- load byte, half or word from memory
-            when  C_OP_LOAD =>
-              MUX_ID          <= C_LSU_ID;
-              LSU_START_LOAD  <= '1';
-              LSU_OP_CODE     <= op_code_f3;
-              LSU_IMM         <= std_logic_vector(resize(signed(i_imm), 32));
-              decode_state    <= ST_LSU_WAIT;
-              pc              <= BRANCH_PC_NEXT;
-              FETCH_START     <= '1';
+              -- jump and link
+              -- PC=PC+signed(imm)
+              -- store the address of pc+4 to rd
+                when C_OP_JAL  =>
+                  MUX_ID        <= C_BR_ID;
+                  BRANCH_IMM    <= std_logic_vector(resize(signed(j_imm), 32));
+                  BRANCH_START  <= '1';
+                  decode_state  <= ST_BRANCH_WAIT;
+              
+                -- jump and link register
+                -- ad offset to PC
+                -- offset=signed(rs1)+signed(imm)
+                -- store the address of pc+1 to rd
+                when C_OP_JALR  => 
+                  MUX_ID          <= C_BR_ID;
+                  BRANCH_START    <= '1';
+                  decode_state    <= ST_BRANCH_WAIT;
             
 
-            -- store byte, half or word in memory
-            when C_OP_STORE =>
-              MUX_ID          <= C_LSU_ID;
-              LSU_START_STORE <= '1';
-              LSU_OP_CODE     <= op_code_f3;
-              LSU_IMM         <= std_logic_vector(resize(signed(s_imm), 32));
-              decode_state    <= ST_LSU_WAIT;
-              pc              <= BRANCH_PC_NEXT;
-              FETCH_START     <= '1';
+                -- consditionnal branch
+                -- PC <= PC+imm if condition
+                when  C_OP_BRANCH =>
+                  MUX_ID          <= C_BR_ID;
+                  BRANCH_IMM      <= std_logic_vector(resize(signed(b_imm), 32));
+                  BRANCH_START    <= '1';
+                  decode_state    <= ST_BRANCH_WAIT;
+
+                -- load byte, half or word from memory
+                when  C_OP_LOAD =>
+                  MUX_ID          <= C_LSU_ID;
+                  LSU_IMM         <= std_logic_vector(resize(signed(i_imm), 32));
+                  pc              <= BRANCH_PC_NEXT;
+                  FETCH_START     <= '1';
+                  LSU_START_LOAD  <= '1';
+                  decode_state    <= ST_WAIT;
             
 
-            -- arithmetic operation using immediate values
-            when C_OP_ARTHI =>
-              MUX_ID          <= C_ALU_ID;
-              ALU_START_IMM   <= '1';
-              ALU_OP_CODE     <= op_code_f3;
-              ALU_OP_CODE_F7  <= op_code_f7;
-              ALU_IMM         <= std_logic_vector(resize(signed(i_imm), 32));
-              ALU_IMMU        <= std_logic_vector(resize(unsigned(i_imm), 32));
-              ALU_SHAMT       <= shamt;
-              decode_state    <= ST_ALU_WAIT;
-              pc              <= BRANCH_PC_NEXT;
-              FETCH_START     <= '1';
+                -- store byte, half or word in memory
+                when C_OP_STORE =>
+                  MUX_ID          <= C_LSU_ID;
+                  LSU_IMM         <= std_logic_vector(resize(signed(s_imm), 32));
+                  pc              <= BRANCH_PC_NEXT;
+                  FETCH_START     <= '1';
+                  LSU_START_STORE <= '1';
+                  decode_state    <= ST_WAIT;
             
 
-            -- arithemtic operations using registers values
-            when C_OP_ARTH    =>
-              MUX_ID          <= C_ALU_ID;
-              ALU_START_IMM   <= '1';
-              ALU_OP_CODE     <= op_code_f3;
-              ALU_OP_CODE_F7  <= op_code_f7;
-              decode_state    <= ST_ALU_WAIT;
-              pc              <= BRANCH_PC_NEXT;
-              FETCH_START     <= '1';
+                -- arithmetic operation using immediate values
+                when C_OP_ARTHI =>
+                  MUX_ID          <= C_ALU_ID;
+                  ALU_IMM         <= std_logic_vector(resize(signed(i_imm), 32));
+                  ALU_IMMU        <= std_logic_vector(resize(unsigned(i_imm), 32));
+                  ALU_SHAMT       <= shamt;
+                  pc              <= BRANCH_PC_NEXT;
+                  FETCH_START     <= '1';
+                  ALU_START_IMM   <= '1';
+                  decode_state    <= ST_WAIT;
             
 
-            -- external operation (ecall, ebreak..)
-             when C_OP_EXT  =>
-                decode_state  <= ST_DECODE;
-            -- fence operation (needed for rv32i???)
-            when C_OP_FENCE   =>
-              pc            <= BRANCH_PC_NEXT;
-              FETCH_START   <= '1';
-              decode_state  <= ST_FETCH_WAIT;
-            when others =>
-              decode_state  <= ST_DECODE;
-            end case;
-      
-      -- add upper immediat write back
-      when ST_AUIPC_WB =>
-        RD            <=  pc_jump;
-        we            <= '1';
+                -- arithemtic operations using registers values
+                when C_OP_ARTH    =>
+                  MUX_ID          <= C_ALU_ID;
+                  pc              <= BRANCH_PC_NEXT;
+                  FETCH_START     <= '1';
+                  ALU_START_IMM   <= '1';
+                  decode_state    <= ST_WAIT;
+
+                -- external operation (ecall, ebreak..)
+                when C_OP_EXT  =>
+                  decode_state  <= ST_FETCH_WB;
+                  
+                -- fence operation (needed for rv32i???)
+                when C_OP_FENCE   =>
+                  pc            <= BRANCH_PC_NEXT;
+                  FETCH_START   <= '1';
+                  decode_state  <= ST_WAIT;
+                when others =>
+                  decode_state  <= ST_FETCH_WB;
+                end case;
+            end if;
+
+      -- wait for branch unit
+      when ST_WAIT =>
         decode_state  <= ST_FETCH_WB;
-      
-      -- jump and link write back
-      when ST_JAL_WB  => 
-        RD            <= pc_next;
-        pc            <= pc_jump;
-        FETCH_START   <= '1';
-        WE            <= '1';
-        decode_state  <= ST_FETCH_WAIT;
-        
-      -- execute jump and link
-      when ST_JALR  =>
-        operande_a    <= unsigned(resize(signed(i_imm, 32)));
-        operande_b    <= unsigned(RS_1);
-        decode_state  <= ST_JALR_WB;
-      
-      -- jump and link write back
-      when ST_JALR_WB =>
-        pc            <= pc_jump;
-        RD            <= pc_next;
-        WE            <= '1';
-        FETCH_START   <= '1';
-        decode_state  <= ST_FETCH_WAIT;
         
       -- wait for branch unit
-      when ST_BR_WAIT =>
-        decode_state  <= ST_BR_WB;
+      when  ST_BRANCH_WAIT => 
+        decode_state  <= ST_BRANCH_WB;
         
       -- branch write back
-      when ST_BR_WB =>
+      when ST_BRANCH_WB =>
         if (BRANCH_READY = '1') =>
-          pc            <= unsigned(BRANCH_PC_NEXT);
+          pc            <= BRANCH_PC_NEXT;
           FETCH_START   <= '1';
-          decode_state  <= ST_FETCH_WAIT;
+          decode_state  <= ST_WAIT;
         end if;
-      
-      -- wait foir load store unit
-      when  ST_LSU_WAIT => 
-        decode_state  <= ST_FETCH_WB;
-      
-      -- wait for alu
-      when  ST_ALU_WAIT =>
-        decode_state  <= ST_FETCH_WB;
-        
-      when others =>
-        decode_state  <= ST_FETCH_WAIT;
       end case
     end if;
   end if;

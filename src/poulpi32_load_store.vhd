@@ -4,7 +4,7 @@ entity poulpi32_load_store is
     CLK             : in  std_logic;
     RSTN            : in  std_logic;
     -- core signals
-    OP_CODE         : in  std_logic_vector(2 downto 0);
+    OP_CODE_F3      : in  std_logic_vector(2 downto 0);
     RS_1            : in  std_logic_vector(31 downto 0);
     RS_2            : in  std_logic_vector(31 downto 0);
     IMM             : in  std_logic_vector(31 downto 0); -- immediate value signed extended
@@ -116,7 +116,7 @@ begin
           READY         <= '1';
           axi_rready_i  <= '0';
           --decode instruction
-          case OP_CODE is
+          case OP_CODE_F3 is
           -- load signed byte
             when C_F3_LB  =>
               RD            <= std_logic_vector(resize(signed(AXI_RDATA((addr_offset+1)*8-1 downto addr_offset*8))));
@@ -146,7 +146,7 @@ begin
         if (axi_awvalid_i = '1') then 
           axi_wvalid_i                        <= '1';
           --decode instruction
-          case OP_CODE is 
+          case OP_CODE_F3 is 
           -- store byte
             when C_F3_SB =>
               AXI_WDATA(8*(addr_offset+1)-1 downto (8*addr_offset)) <= RS_2(7 downto 0);

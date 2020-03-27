@@ -71,7 +71,8 @@ package poulpi32_pkg is
   constant C_F3_BGE   : std_logic_vector(2 downto 0):="101";
   constant C_F3_BLTU  : std_logic_vector(2 downto 0):="110";
   constant C_F3_BGEU  : std_logic_vector(2 downto 0):="111";
-  
+
+    
   
   -- load f3
   constant C_F3_LB    : std_logic_vector(2 downto 0):="000";
@@ -86,15 +87,15 @@ package poulpi32_pkg is
   constant C_F3_SW    : std_logic_vector(2 downto 0):="010";
   
   -- arithemtic 
-  constant C_F3_ADDI  : std_logic_vector(2 downto 0):="1000";
-  constant C_F3_SLTI  : std_logic_vector(2 downto 0):="1010";
-  constant C_F3_SLTIU : std_logic_vector(2 downto 0):="1011";
-  constant C_F3_XORI  : std_logic_vector(2 downto 0):="1100";
-  constant C_F3_ORI   : std_logic_vector(2 downto 0):="1110";
-  constant C_F3_ANDI  : std_logic_vector(2 downto 0):="1111";
-  constant C_F3_SLLI  : std_logic_vector(2 downto 0):="1001";
-  constant C_F3_SRLI  : std_logic_vector(2 downto 0):="1101";
-  constant C_F3_SRAI  : std_logic_vector(2 downto 0):="1101"; --f7 is different...
+  constant C_F3_ADDI  : std_logic_vector(2 downto 0):="000";
+  constant C_F3_SLTI  : std_logic_vector(2 downto 0):="010";
+  constant C_F3_SLTIU : std_logic_vector(2 downto 0):="011";
+  constant C_F3_XORI  : std_logic_vector(2 downto 0):="100";
+  constant C_F3_ORI   : std_logic_vector(2 downto 0):="110";
+  constant C_F3_ANDI  : std_logic_vector(2 downto 0):="111";
+  constant C_F3_SLLI  : std_logic_vector(2 downto 0):="001";
+  constant C_F3_SRLI  : std_logic_vector(2 downto 0):="101";
+  constant C_F3_SRAI  : std_logic_vector(2 downto 0):="101"; --f7 is different...
   
 
   
