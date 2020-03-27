@@ -1,3 +1,10 @@
+library work;
+  use work.poulpi32_pkg.all;
+
+library ieee;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+
 
 entity poulpi32_core is
   generic(
@@ -15,6 +22,7 @@ entity poulpi32_core is
     AXI_FETCH_RVALID    : in  std_logic;
     AXI_FETCH_RREADY    : out std_logic;
     AXI_FETCH_RDATA     : in  std_logic_vector(31 downto 0);
+    AXI_FETCH_RESP      : in  std_logic_vector(1 downto 0);
     
     -- AXI4 lite memory signals for lsu
     -- write access
@@ -63,11 +71,12 @@ architecture rtl of poulpi32_core is
       BRANCH_IMM        : out std_logic_vector(31 downto 0);
       BRANCH_PC         : out std_logic_vector(31 downto 0);
       BRANCH_NEXT_PC    : in  std_logic_vector(31 downto 0);
-      BRANCH_OP_CODE    : out std_logic_vector(2 downto  0);
+      BRANCH_OP_CODE_F3 : out std_logic_vector(2 downto  0);
+      BRANCH_OP_CODE    : out std_logic_vector(6 downto  0);
       BRANCH_START      : out std_logic;
-      BRANCH_READY      : in  std_logic
+      BRANCH_READY      : in  std_logic;
       -- load store signals
-      LSU_OP_CODE       : out std_logic_vector(2 downto 0);
+      LSU_OP_CODE_F3    : out std_logic_vector(2 downto 0);
       LSU_IMM           : out std_logic_vector(31 downto 0); 
       LSU_START_LOAD    : out std_logic;
       LSU_START_STORE   : out std_logic;
@@ -79,7 +88,7 @@ architecture rtl of poulpi32_core is
       ALU_READY         : in  std_logic;
       ALU_START_REG     : out std_logic;
       ALU_START_IMM     : out std_logic;
-      ALU_OP_CODE       : out std_logic_vector(2 downto 0);
+      ALU_OP_CODE_F3    : out std_logic_vector(2 downto 0);
       ALU_OP_CODE_F7    : out std_logic_vector(6 downto 0);
       -- mux signals
       MUX_ID            : out std_logic_vector(1 downto 0);
@@ -104,7 +113,7 @@ architecture rtl of poulpi32_core is
       RSTN    : in  std_logic;
         
       RS_1    : out std_logic_vector(31 downto 0);
-      RS_2    : out std_logic_vector(31 downto 0)
+      RS_2    : out std_logic_vector(31 downto 0);
       RD      : in  std_logic_vector(31 downto 0);
        
       RS1_ID  : in  std_logic_vector(4 downto 0);
@@ -123,7 +132,7 @@ architecture rtl of poulpi32_core is
       CLK             : in  std_logic;
       RSTN            : in  std_logic;
       -- core signals
-      OP_CODE         : in  std_logic_vector(2 downto 0);
+      OP_CODE_F3      : in  std_logic_vector(2 downto 0);
       RS_1            : in  std_logic_vector(31 downto 0);
       RS_2            : in  std_logic_vector(31 downto 0);
       IMM             : in  std_logic_vector(31 downto 0); 
@@ -156,28 +165,29 @@ architecture rtl of poulpi32_core is
       AXI_RDATA       : in  std_logic_vector(31 downto 0);
       AXI_RESP        : in  std_logic_vector(1 downto 0)
     );
-  end component poulpi32_load_sore;
+  end component poulpi32_load_store;
 
   ----------------------------------------------------------------------
   -- branch unit
   ----------------------------------------------------------------------
   component poulpi32_branch is 
     port(
-      CLK       : in  std_logic;
-      RSTN      : in  std_logic;
-          
-      RS_1      : in  std_logic_vector(31 downto 0);
-      RS_2      : in  std_logic_vector(31 downto 0);
-      RD        : out std_logic_vector(31 downto 0);
-      WE        : out std_logic;
-          
-      IMM       : in  std_logic_vector(31 downto 0);
-      PC        : in  std_logic_vector(31 downto 0);
-      NEXT_PC   : out std_logic_vector(31 downto 0);
-      
-      OP_CODE   : in  std_logic_vector(2 downto 0);
-      START     : in  std_logic;
-      READY     : out std_logic
+      CLK         : in  std_logic;
+      RSTN        : in  std_logic;
+            
+      RS_1        : in  std_logic_vector(31 downto 0);
+      RS_2        : in  std_logic_vector(31 downto 0);
+      RD          : out std_logic_vector(31 downto 0);
+      WE          : out std_logic;
+            
+      IMM         : in  std_logic_vector(31 downto 0);
+      PC          : in  std_logic_vector(31 downto 0);
+      NEXT_PC     : out std_logic_vector(31 downto 0);
+        
+      OP_CODE_F3  : in  std_logic_vector(2 downto 0);
+      OP_CODE     : in  std_logic_vector(6 downto 0);
+      START       : in  std_logic;
+      READY       : out std_logic
     );
   end component poulpi32_branch;
 
@@ -190,7 +200,7 @@ architecture rtl of poulpi32_core is
       CLK             : in  std_logic;
       RSTN            : in  std_logic;
       -- core signals
-      PROGAM_COUNTER  : in  std_logic_vector(31 downto 0);
+      PROGRAM_COUNTER : in  std_logic_vector(31 downto 0);
       FETCH_INSTR     : out std_logic_vector(31 downto 0);
       -- control signals
       START_FECTH     : in  std_logic;
@@ -202,7 +212,8 @@ architecture rtl of poulpi32_core is
       AXI_ARPROT      : out std_logic_vector(2 downto 0);
       AXI_RVALID      : in  std_logic;
       AXI_RREADY      : out std_logic;
-      AXI_RDATA       : in  std_logic_vector(31 downto 0)
+      AXI_RDATA       : in  std_logic_vector(31 downto 0);
+      AXI_RESP        : in  std_logic_vector(1 downto 0)
     );
   end component poulpi32_fetch;
   
@@ -262,7 +273,7 @@ architecture rtl of poulpi32_core is
       START_IMM   : in  std_logic;
       WE          : out std_logic;
       
-      OP_CODE     : in  std_logic_vector(2 downto 0);
+      OP_CODE_F3  : in  std_logic_vector(2 downto 0);
       OP_CODE_F7  : in  std_logic_vector(6 downto 0)
     );
   end component poulpi32_alu;
@@ -306,10 +317,11 @@ architecture rtl of poulpi32_core is
   signal branch_imm         : std_logic_vector(31 downto 0);
   signal branch_pc          : std_logic_vector(31 downto 0);
   signal branch_next_pc     : std_logic_vector(31 downto 0);
-  signal branch_op_code     : std_logic_vector(2  downto 0);
+  signal branch_op_code_f3  : std_logic_vector(2  downto 0);
+  signal branch_op_code     : std_logic_vector(6  downto 0);
   signal branch_start       : std_logic;
-  signal branch_ready       : std_logic
-  signal lsu_op_code        : std_logic_vector(2  downto 0);
+  signal branch_ready       : std_logic;
+  signal lsu_op_code_f3     : std_logic_vector(2  downto 0);
   signal lsu_imm            : std_logic_vector(31 downto 0); 
   signal lsu_start_load     : std_logic;
   signal lsu_start_store    : std_logic;
@@ -320,7 +332,7 @@ architecture rtl of poulpi32_core is
   signal alu_ready          : std_logic;
   signal alu_start_reg      : std_logic;
   signal alu_start_imm      : std_logic;
-  signal alu_op_code        : std_logic_vector(2  downto 0);
+  signal alu_op_code_f3     : std_logic_vector(2  downto 0);
   signal alu_op_code_f7     : std_logic_vector(6  downto 0);
 
 begin
@@ -345,7 +357,7 @@ begin
       BRANCH_OP_CODE    => branch_op_code, 
       BRANCH_START      => branch_start,   
       BRANCH_READY      => branch_ready,   
-      LSU_OP_CODE       => lsu_op_code,     
+      LSU_OP_CODE_F3    => lsu_op_code_f3,     
       LSU_IMM           => lsu_imm,         
       LSU_START_LOAD    => lsu_start_load,  
       LSU_START_STORE   => lsu_start_store, 
@@ -356,7 +368,7 @@ begin
       ALU_READY         => alu_ready,       
       ALU_START_REG     => alu_start_reg,   
       ALU_START_IMM     => alu_start_imm,   
-      ALU_OP_CODE       => alu_op_code,     
+      ALU_OP_CODE_F3    => alu_op_code_f3,     
       ALU_OP_CODE_F7    => alu_op_code_f7,  
       MUX_ID            => mux_id,
       RS1_ID            => rs1_id,
@@ -394,7 +406,7 @@ begin
 
       CLK             => CLK,
       RSTN            => RSTN,
-      OP_CODE         => lsu_op_code,     
+      OP_CODE_F3      => lsu_op_code_f3,     
       RS_1            => lsu_rs_1,      
       RS_2            => lsu_rs_2,
       IMM             => lsu_imm,  
@@ -452,7 +464,7 @@ begin
     port map(
       CLK             => CLK,
       RSTN            => RSTN,
-      PROGAM_COUNTER  => fetch_pc,
+      PROGRAM_COUNTER => fetch_pc,
       FETCH_INSTR     => fetch_instr,
       START_FECTH     => fetch_start,
       READY           => fetch_ready,
@@ -462,7 +474,8 @@ begin
       AXI_ARPROT      => AXI_FETCH_ARPROT,  
       AXI_RVALID      => AXI_FETCH_RVALID,  
       AXI_RREADY      => AXI_FETCH_RREADY,  
-      AXI_RDATA       => AXI_FETCH_RDATA   
+      AXI_RDATA       => AXI_FETCH_RDATA,
+      AXI_RESP        => AXI_FETCH_RESP
     );
 
 
@@ -512,7 +525,7 @@ begin
       START_REG   => alu_start_reg,
       START_IMM   => alu_start_imm,
       WE          => alu_we,
-      OP_CODE     => alu_op_code,
+      OP_CODE_F3  => alu_op_code_f3,
       OP_CODE_F7  => alu_op_code_f7
     );
 

@@ -1,5 +1,9 @@
 library work;
-  use work.poulpi32_pkg.all
+  use work.poulpi32_pkg.all;
+
+library ieee;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
 
 entity poulpi32_alu is
   port(
@@ -19,7 +23,7 @@ entity poulpi32_alu is
     START_REG   : in  std_logic;
     START_IMM   : in  std_logic;
     WE          : out std_logic;
-    
+  
     -- op codes
     OP_CODE_F3  : in  std_logic_vector(2 downto 0);
     OP_CODE_F7  : in  std_logic_vector(6 downto 0)
@@ -27,7 +31,7 @@ entity poulpi32_alu is
 end entity poulpi32_alu;
 
 
-architecture rtl of poulpi32 _alu is
+architecture rtl of poulpi32_alu is
 
   -- signals for shifter
   signal cnt_shift        : unsigned(4 downto 0);
@@ -45,10 +49,10 @@ architecture rtl of poulpi32 _alu is
   signal operande_b       : std_logic_vector(31 downto 0);
   signal comp_result      : std_logic;
   signal comp_resultu     : std_logic;
-  signal adder_result     : unsigned(31 downto 0);
+  signal adder_result     : std_logic_vector(31 downto 0);
   signal or_result        : std_logic_vector(31 downto 0);
   signal xor_result       : std_logic_vector(31 downto 0);
-  signal and_result       ; std_logic_vector(31 downto 0);
+  signal and_result       : std_logic_vector(31 downto 0);
   
 
   signal ready_i          : std_logic;
@@ -68,7 +72,7 @@ begin
   
   P_ALU : process(CLK) 
   begin
-    if rising_edge(CLK)
+    if rising_edge(CLK) then
       if (RSTN = '0') then
         cnt_shift       <= (others => '0');
         WE              <= '0';
@@ -95,7 +99,7 @@ begin
         end if;
         
         -- adder
-        adder_result  <= unsigned(operande_a) + unsigned(operande_b);
+        adder_result  <= std_logic_vector(unsigned(operande_a) + unsigned(operande_b));
         
         --comp
         if (unsigned(operande_b) < unsigned(operande_a)) then
@@ -151,7 +155,7 @@ begin
           -- add immediat
           when C_F3_ADD  =>
             --sub (to be improved)
-            if (START_REG ='1' and C_F7_SUB = '1') then
+            if (START_REG = '1' and OP_CODE_F7 = C_F7_SUB) then
               operande_b  <= std_logic_vector(unsigned(not(RS_1)) + 1); -- two's complement
             end if;
             
@@ -185,13 +189,13 @@ begin
           -- or immediat
           when C_F3_OR   => 
             if (ready_i_r ='0') then
-              RD(0)       <= or_result;
+              RD       <= or_result;
             end if;
           
           -- and immediat
           when C_F3_AND  =>
             if (ready_i_r ='0') then
-              RD(0)       <= and_result;
+              RD       <= and_result;
             end if;
             
           -- shift left logical
@@ -213,7 +217,7 @@ begin
             bit_shift <= '0';
             
             if (ready_i_r = '0' and cnt_shift = 0) then
-              RS  <= shifter;
+              RD  <= shifter;
             end if;
           
           -- shift right logical or arithmetic
@@ -238,7 +242,7 @@ begin
             end if;
             
             if (ready_i_r = '0' and cnt_shift = 0) then
-              RS      <= shifter_reverse;
+              RD      <= shifter_reverse;
             end if;
             
           when others => 
@@ -246,7 +250,7 @@ begin
             if (START_REG = '1' or START_IMM = '1') then
               ready_i   <= '0';
               ready_i_r <= '1';
-            end if:
+            end if;
           end case;
       end if;
     end if;

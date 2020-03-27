@@ -1,11 +1,19 @@
+library work;
+  use work.poulpi32_pkg.all;
+
+library ieee;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+
+
 entity poulpi32_reg is
   port(
     CLK     : in std_logic;
     RSTN    : in std_logic;
       
     RS_1    : out std_logic_vector(31 downto 0);
-    RS_2    : out std_logic_vector(31 downto 0)
-    RD      : in std_logic_vector(31 downto 0);
+    RS_2    : out std_logic_vector(31 downto 0);
+    RD      : in  std_logic_vector(31 downto 0);
      
     RS1_ID  : in std_logic_vector(4 downto 0);
     RS2_ID  : in std_logic_vector(4 downto 0);
@@ -16,11 +24,11 @@ entity poulpi32_reg is
 end entity poulpi32_reg;
 
 architecture rtl of poulpi32_reg is
-  type t_reg is array range <> of std_logic_vector(31 downto 0);
+  type t_reg is array (integer range <>) of std_logic_vector(31 downto 0);
   
   signal register_file                  : t_reg(31 downto 0);
-  attribute ram_stype                   : string;
-  attribute ram_style of register_file  : signal is "auto";
+  --attribute ram_stype                   : string;
+  --attribute ram_style of register_file  : signal is "auto";
   
   signal r0                             : std_logic_vector(31 downto 0);
 

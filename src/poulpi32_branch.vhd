@@ -1,6 +1,11 @@
 library work;
   use work.poulpi32_pkg.all;
 
+library ieee;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+
+
 entity poulpi32_branch is 
   port(
     CLK       : in  std_logic;
@@ -54,7 +59,8 @@ begin
       is_equal      <= '0';
       comp_result   <= '0';
       comp_resultu  <= '0';
-      branch_pc     <= '0';
+      branch_pc     <= (others =>'0');
+      not_branch_pc <= (others =>'0');
       ready_i       <= '1';
       ready_i_r     <= '1';
     else

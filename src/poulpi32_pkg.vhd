@@ -1,3 +1,6 @@
+library ieee;
+  use ieee.std_logic_1164.all;
+
 package poulpi32_pkg is
   -------------------------------------------------------------------------------------------------
   -- main op codes
@@ -87,15 +90,15 @@ package poulpi32_pkg is
   constant C_F3_SW    : std_logic_vector(2 downto 0):="010";
   
   -- arithemtic 
-  constant C_F3_ADDI  : std_logic_vector(2 downto 0):="000";
-  constant C_F3_SLTI  : std_logic_vector(2 downto 0):="010";
-  constant C_F3_SLTIU : std_logic_vector(2 downto 0):="011";
-  constant C_F3_XORI  : std_logic_vector(2 downto 0):="100";
-  constant C_F3_ORI   : std_logic_vector(2 downto 0):="110";
-  constant C_F3_ANDI  : std_logic_vector(2 downto 0):="111";
-  constant C_F3_SLLI  : std_logic_vector(2 downto 0):="001";
-  constant C_F3_SRLI  : std_logic_vector(2 downto 0):="101";
-  constant C_F3_SRAI  : std_logic_vector(2 downto 0):="101"; --f7 is different...
+  constant C_F3_ADD  : std_logic_vector(2 downto 0):="000";
+  constant C_F3_SLT  : std_logic_vector(2 downto 0):="010";
+  constant C_F3_SLTU : std_logic_vector(2 downto 0):="011";
+  constant C_F3_XOR  : std_logic_vector(2 downto 0):="100";
+  constant C_F3_OR   : std_logic_vector(2 downto 0):="110";
+  constant C_F3_AND  : std_logic_vector(2 downto 0):="111";
+  constant C_F3_SLL  : std_logic_vector(2 downto 0):="001";
+  constant C_F3_SRL  : std_logic_vector(2 downto 0):="101";
+  constant C_F3_SRA  : std_logic_vector(2 downto 0):="101"; --f7 is different...
   
 
   
@@ -148,7 +151,27 @@ package poulpi32_pkg is
   -- function 
   ----------------------------------------------------------------------
   -- reverse range of a std logic vector
-  function slv_reverse_range(a : in std_logic_vector)
+  function slv_reverse_range(a : in std_logic_vector) return std_logic_vector;
+  
+  -- compute global xor of a std_logic_vector
+  function slv_global_xor(a : in std_logic_vector; b : in std_logic_vector) return std_logic_vector;
+  
+  -- compute global or of a std_logic_vector
+  function slv_global_or(a : in std_logic_vector; b : in std_logic_vector) return std_logic_vector;
+    
+  -- compute global or of a std_logic_vector
+  function slv_global_and(a : in std_logic_vector; b : in std_logic_vector) return std_logic_vector;
+  
+end package poulpi32_pkg;
+
+
+------------------------------------------------------------------------
+-- package body
+------------------------------------------------------------------------
+package body poulpi32_pkg is
+
+  -- reverse range of a std logic vector
+  function slv_reverse_range(a : in std_logic_vector) return std_logic_vector is
     variable v_high   : integer:= a'high;
     variable v_result : std_logic_vector(a'high downto 0);
     begin
@@ -159,7 +182,7 @@ package poulpi32_pkg is
     end;
   
   -- compute global xor of a std_logic_vector
-  function slv_global_xor(a : in std_logic_vector, b : in std_logic_vector)
+  function slv_global_xor(a : in std_logic_vector; b : in std_logic_vector) return std_logic_vector is
     variable v_high   : integer:= a'high;
     variable v_result : std_logic_vector(a'high downto 0);
     begin
@@ -170,7 +193,7 @@ package poulpi32_pkg is
     end;
     
   -- compute global or of a std_logic_vector
-  function slv_global_or(a : in std_logic_vector, b : in std_logic_vector)
+  function slv_global_or(a : in std_logic_vector; b : in std_logic_vector) return std_logic_vector is 
     variable v_high   : integer:= a'high;
     variable v_result : std_logic_vector(a'high downto 0);
     begin
@@ -181,7 +204,7 @@ package poulpi32_pkg is
     end;
     
     -- compute global or of a std_logic_vector
-  function slv_global_and(a : in std_logic_vector, b : in std_logic_vector)
+  function slv_global_and(a : in std_logic_vector; b : in std_logic_vector) return std_logic_vector is
     variable v_high   : integer:= a'high;
     variable v_result : std_logic_vector(a'high downto 0);
     begin
@@ -190,6 +213,5 @@ package poulpi32_pkg is
       end loop;
       return v_result;
     end;
-  
-end poulpi32_pkg;
+end package body poulpi32_pkg;
   
