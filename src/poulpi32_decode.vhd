@@ -77,7 +77,7 @@ architecture rtl of poulpi32_decode is
   
   signal i_imm          : std_logic_vector(11 downto 0);
   signal b_imm          : std_logic_vector(12 downto 0);
-  signal j_imm          : std_logic_vector(11 downto 0);
+  signal j_imm          : std_logic_vector(19 downto 0);
   signal s_imm          : std_logic_vector(11 downto 0);
   signal u_imm          : std_logic_vector(31 downto 0);
   signal shamt          : std_logic_vector(4  downto 0);

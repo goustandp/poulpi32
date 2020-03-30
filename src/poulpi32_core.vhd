@@ -355,6 +355,7 @@ begin
       BRANCH_PC         => branch_pc,      
       BRANCH_NEXT_PC    => branch_next_pc, 
       BRANCH_OP_CODE    => branch_op_code, 
+      BRANCH_OP_CODE_F3 => branch_op_code_f3, 
       BRANCH_START      => branch_start,   
       BRANCH_READY      => branch_ready,   
       LSU_OP_CODE_F3    => lsu_op_code_f3,     

@@ -66,6 +66,7 @@ begin
   
 
   AXI_AWPROT            <= C_DACCESS;
+  AXI_ARPROT            <= C_DACCESS;
 
   -- ready and valid signals
   AXI_AWVALID           <= axi_awvalid_i;
@@ -76,7 +77,7 @@ begin
 
 
   P_LOAD_STORE  : process(CLK)
-    variable v_axi_addr  : signed(32 downto 0);
+    variable v_axi_addr  : signed(31 downto 0);
   begin
     if rising_edge(CLK) then
       if (RSTN = '0') then

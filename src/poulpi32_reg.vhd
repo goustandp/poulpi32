@@ -49,7 +49,7 @@ begin
     
     -- RS2
     if (unsigned(RS2_ID) /= 0) then
-      RS_1  <= register_file(to_integer(unsigned(RS2_ID)));
+      RS_2  <= register_file(to_integer(unsigned(RS2_ID)));
     else
       RS_1  <= r0;
     end if;
