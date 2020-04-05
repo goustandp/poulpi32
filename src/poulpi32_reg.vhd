@@ -41,17 +41,17 @@ begin
   begin
   if rising_edge(CLK) then
     -- RS1
-    if (unsigned(RS1_ID) /= 0) then
-      RS_1  <= register_file(to_integer(unsigned(RS1_ID)));
-    else
+    if (unsigned(RS1_ID) = 0) then
       RS_1  <= r0;
+    else
+      RS_1  <= register_file(to_integer(unsigned(RS1_ID)));
     end if;
     
     -- RS2
-    if (unsigned(RS2_ID) /= 0) then
-      RS_2  <= register_file(to_integer(unsigned(RS2_ID)));
+    if (unsigned(RS2_ID) = 0) then
+      RS_2  <= r0;
     else
-      RS_1  <= r0;
+      RS_2  <= register_file(to_integer(unsigned(RS2_ID)));
     end if;
     
     -- RD

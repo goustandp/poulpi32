@@ -162,7 +162,7 @@ begin
                 
             -- store half 
             when C_F3_SH  =>  
-              AXI_WDATA(8*(addr_offset+2)-1 downto (8*addr_offset)) <= RS_2(7 downto 0);
+              AXI_WDATA(8*(addr_offset+2)-1 downto (8*addr_offset)) <= RS_2(15 downto 0);
               AXI_WSTRB(addr_offset+1 downto addr_offset)           <= "11";
               
             -- store word

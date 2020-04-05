@@ -74,8 +74,8 @@ begin
   begin
     if rising_edge(CLK) then
       if (RSTN = '0') then
+        -- internals signals
         cnt_shift       <= (others => '0');
-        WE              <= '0';
         ready_i         <= '1';
         ready_i_r       <= '1';
         operande_a      <= (others => '0');
@@ -85,6 +85,9 @@ begin
         or_result       <= (others => '0');
         xor_result      <= (others => '0');
         and_result      <= (others => '0');
+        --output
+        WE              <= '0';
+        RD              <= (others => '0');
         
         -- no need to reset shifter
       else
@@ -156,7 +159,7 @@ begin
           when C_F3_ADD  =>
             --sub (to be improved)
             if (START_REG = '1' and OP_CODE_F7 = C_F7_SUB) then
-              operande_b  <= std_logic_vector(unsigned(not(RS_1)) + 1); -- two's complement
+              operande_a  <= std_logic_vector(unsigned(not(RS_2)) + 1); -- two's complement
             end if;
             
             if (ready_i_r = '0') then

@@ -53,7 +53,8 @@ begin
   begin
   
   if rising_edge(CLK) then
-    if (RSTN = '1') then
+    if (RSTN = '0') then
+      -- internals signals
       operande_a    <= (others => '0');
       operande_b    <= (others => '0');
       is_equal      <= '0';
@@ -63,6 +64,10 @@ begin
       not_branch_pc <= (others =>'0');
       ready_i       <= '1';
       ready_i_r     <= '1';
+      -- output
+      RD            <= (others => '0');
+      WE            <= '0';
+      NEXT_PC       <= (others => '0');
     else
       
       -- compute next pc
@@ -108,6 +113,9 @@ begin
       
       -- defalut is branch not taken
       NEXT_PC <= not_branch_pc;
+      
+      -- WE pulse
+      WE    <= '0';
       
       case OP_CODE_F3 is 
         -- branch if equal

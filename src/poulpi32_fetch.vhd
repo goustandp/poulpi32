@@ -27,7 +27,6 @@ entity poulpi32_fetch is
 end entity poulpi32_fetch;
 
 architecture rtl of poulpi32_fetch is 
-  signal axi_addr         : std_logic_vector(31 downto 0);
   signal axi_arvalid_i    : std_logic;
   signal axi_rready_i     : std_logic;
 
@@ -77,7 +76,7 @@ begin
         
         -- read resp
         if (axi_rready_i = '1' and AXI_RVALID = '1') then
-          if (AXI_RESP /= C_OKAY or AXI_RESP /= C_EXOKAY) then
+          if ((AXI_RESP /= C_OKAY) and (AXI_RESP /= C_EXOKAY)) then
             READY <= '0';
           end if;
         end if;
