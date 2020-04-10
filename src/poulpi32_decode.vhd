@@ -212,7 +212,7 @@ begin
                 MUX_ID          <= C_BR_ID;
                 BRANCH_START    <= '1';
                 decode_state    <= ST_BRANCH_WAIT;
-          
+                BRANCH_IMM      <= std_logic_vector(resize(signed(i_imm), 32)); 
 
               -- consditionnal branch
               -- PC <= PC+imm if condition

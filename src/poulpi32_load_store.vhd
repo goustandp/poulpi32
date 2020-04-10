@@ -196,14 +196,14 @@ begin
         -- write resp 
         if (axi_bready_i =  '1' and AXI_BVALID  = '1') then
           axi_bready_i  <= '0';
-          if (AXI_BRESP /= C_OKAY or AXI_BRESP /=C_EXOKAY) then
+          if (AXI_BRESP /= C_OKAY and AXI_BRESP /=C_EXOKAY) then
             READY <= '0';
           end if;
         end if;
         
         -- read resp
         if (axi_rready_i = '1' and AXI_RVALID = '1') then
-          if (AXI_RESP /= C_OKAY or AXI_RESP /= C_EXOKAY) then
+          if (AXI_RESP /= C_OKAY and AXI_RESP /= C_EXOKAY) then
             READY <= '0';
           end if;
         end if;

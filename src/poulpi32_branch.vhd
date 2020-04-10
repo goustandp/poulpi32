@@ -181,6 +181,7 @@ begin
           if (ready_i_r = '0') then
             RD  <= branch_pc;
             WE  <= '1';
+            NEXT_PC <= not_branch_pc;
           end if;
         
         -- jump and link immediat
@@ -194,8 +195,7 @@ begin
         -- jump and link register 
         when  C_OP_JALR =>
           if (START = '1') then
-            add_operande_a  <= unsigned(RS_1);
-            add_operande_b  <= unsigned(RS_2);
+            add_operande_b  <= unsigned(RS_1);
           end if;
           
           if (ready_i_r = '0') then
