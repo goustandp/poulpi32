@@ -7,7 +7,7 @@ SIMTIME= 2000us
 GHDL=ghdl
 GHDLFLAGS=
 GHDLRUNFLAGS=--wave=./sim/toto.ghw --stop-time=$(SIMTIME)
-LIBDIR = $(HOME)/.local/lib/ghdl/src
+
 
 # Default target : elaborate
 all : run
@@ -23,13 +23,13 @@ run : elab
 
 # Targets to analyze libraries
 init: 
-	# /home/poulpi/.local/lib/ghdl/ieee/v93/../../src/ieee/v93/std_logic_1164.vhdl
-	# /home/poulpi/.local/lib/ghdl/ieee/v93/../../src/ieee/v93/std_logic_1164-body.vhdl
+	# $(HOME)/.local/lib/ghdl/ieee/v93/../../src/ieee/v93/std_logic_1164.vhdl
+	# $(HOME)/.local/lib/ghdl/ieee/v93/../../src/ieee/v93/std_logic_1164-body.vhdl
 	$(GHDL) -a $(GHDLFLAGS) poulpi32/poulpi32_pkg.vhd
-	# /home/poulpi/.local/lib/ghdl/ieee/v93/../../src/ieee/v93/numeric_std.vhdl
-	# /home/poulpi/.local/lib/ghdl/ieee/v93/../../src/ieee/v93/numeric_std-body.vhdl
-	# /home/poulpi/.local/lib/ghdl/std/v93/../../src/std/v93/textio.vhdl
-	# /home/poulpi/.local/lib/ghdl/std/v93/../../src/std/v93/textio-body.vhdl
+	# $(HOME)/.local/lib/ghdl/ieee/v93/../../src/ieee/v93/numeric_std.vhdl
+	# $(HOME)/.local/lib/ghdl/ieee/v93/../../src/ieee/v93/numeric_std-body.vhdl
+	# $(HOME)/.local/lib/ghdl/std/v93/../../src/std/v93/textio.vhdl
+	# $(HOME)/.local/lib/ghdl/std/v93/../../src/std/v93/textio-body.vhdl
 	$(GHDL) -a $(GHDLFLAGS) ./bench/bench_poulpi32.vhd
 	$(GHDL) -a $(GHDLFLAGS) poulpi32/poulpi32_core.vhd
 	$(GHDL) -a $(GHDLFLAGS) axi_utils/axi_bram.vhd
