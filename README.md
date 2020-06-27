@@ -6,4 +6,4 @@ Only RV32I instructions are supported.
 Memory interface use the AXI4-Lite protocol.
 On a kintex 7 FPGA it uses 860 LUTs (maybe less in a future..).
 
-![Poulpi32 overview](doc/poulpi32_overwiew.jpg)
+![Poulpi32 overview](/doc/poulpi32_overview.jpg)
