@@ -139,6 +139,16 @@ begin
         addr_a          <= (others => '0');
       else
         
+        
+        if (axi_a_rvalid_i = '1' and AXI_A_RREADY = '1') then
+          axi_a_rvalid_i  <= '0';
+        end if;
+        
+        -- bresp
+        if (axi_a_bvalid_i  = '1' and AXI_A_BREADY = '1') then
+          axi_a_bvalid_i  <= '0';
+        end if;
+        
         -- write access
         if (AXI_A_AWVALID = '1') then
           addr_a          <= unsigned(AXI_A_AWADDR(G_ADDR_WIDTH+1 downto 2));
@@ -161,15 +171,6 @@ begin
           axi_a_rvalid_i  <= '1';
         end if;
         
-        
-        if (axi_a_rvalid_i = '1' and AXI_A_RREADY = '1') then
-          axi_a_rvalid_i  <= '0';
-        end if;
-        
-        -- bresp
-        if (axi_a_bvalid_i  = '1' and AXI_A_BREADY = '1') then
-          axi_a_bvalid_i  <= '1';
-        end if;
       
       end if;
     end if;
@@ -184,6 +185,17 @@ begin
         axi_b_rvalid_i  <= '0';
         addr_b          <= (others => '0');
       else
+        
+        
+        if (axi_b_rvalid_i = '1' and AXI_B_RREADY = '1') then
+          axi_b_rvalid_i  <= '0';
+        end if;
+        
+        -- bresp
+        if (axi_b_bvalid_i  = '1' and AXI_B_BREADY = '1') then
+          axi_b_bvalid_i  <= '0';
+        end if;
+        
         
         -- write access
         if (AXI_B_AWVALID = '1') then
@@ -207,15 +219,7 @@ begin
           axi_b_rvalid_i  <= '1';
         end if;
         
-        
-        if (axi_b_rvalid_i = '1' and AXI_B_RREADY = '1') then
-          axi_b_rvalid_i  <= '0';
-        end if;
-        
-        -- bresp
-        if (axi_b_bvalid_i  = '1' and AXI_B_BREADY = '1') then
-          axi_b_bvalid_i  <= '1';
-        end if;
+      
       
       end if;
     end if;
