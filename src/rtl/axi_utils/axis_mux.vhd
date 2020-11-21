@@ -15,8 +15,9 @@ entity axis_mux is
     G_TDATA_WIDTH     : integer := 1;
     G_TUSER_WIDTH     : integer := 1;
     G_TDEST_WIDTH     : integer := 1;
-    G_TID_WIDTH       : integer:=1;
+    G_TID_WIDTH       : integer:=1
   );
+  
   port(
     -- slaves interfaces
     S_AXIS_TDATA    : in  std_logic_vector(G_NB_SLAVE_INPUT*G_TDATA_WIDTH-1 downto 0):=(others => '-');;
@@ -35,7 +36,7 @@ entity axis_mux is
     M_AXIS_TKEEP    : out std_logic_vector((G_TDATA_WIDTH/8)-1 downto 0);
     M_AXIS_TUSER    : out std_logic_vector(G_TUSER_WIDTH-1 downto 0);
     M_AXIS_TID      : out std_logic_vector(G_TID_WIDTH-1 downto 0);
-    M_AXIS_TDEST    : out std_logic_vector(G_TEST_WIDTH-1 downto 0);
+    M_AXIS_TDEST    : out std_logic_vector(G_TEST_WIDTH-1 downto 0)
 
   );
 end entity;
