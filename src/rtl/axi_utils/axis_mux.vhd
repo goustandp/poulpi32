@@ -20,13 +20,13 @@ entity axis_mux is
   
   port(
     -- slaves interfaces
-    S_AXIS_TDATA    : in  std_logic_vector(G_NB_SLAVE_INPUT*G_TDATA_WIDTH-1 downto 0):=(others => '-');;
-    S_AXIS_TVALID   : in  std_logic_vector(G_NB_SLAVE_INPUT-1 downto 0):=(others => '-');;
+    S_AXIS_TDATA    : in  std_logic_vector(G_NB_SLAVE_INPUT*G_TDATA_WIDTH-1 downto 0):=(others => '-');
+    S_AXIS_TVALID   : in  std_logic_vector(G_NB_SLAVE_INPUT-1 downto 0):=(others => '-');
     S_AXIS_TREADY   : out std_logic_vector(G_NB_SLAVE_INPUT-1 downto 0);
-    S_AXIS_TKEEP    : in  std_logic_vector(G_NB_SLAVE_INPUT*(G_TDATA_WIDTH/8)-1 downto 0):=(others => '-');;
-    S_AXIS_TUSER    : in  std_logic_vector(G_NB_SLAVE_INPUT*G_TUSER_WIDTH-1 downto 0):=(others => '-');;
-    S_AXIS_TID      : in  std_logic_vector(G_NB_MASTER_INPUT*G_TID_WIDTH-1 downto 0):=(others => '-');;
-    S_AXIS_TDEST    : in  std_logic_vector(G_NB_MASTER_INPUT*G_TDEST_WIDTH-1 downto 0):=(others => '-');;
+    S_AXIS_TKEEP    : in  std_logic_vector(G_NB_SLAVE_INPUT*(G_TDATA_WIDTH/8)-1 downto 0):=(others => '-');
+    S_AXIS_TUSER    : in  std_logic_vector(G_NB_SLAVE_INPUT*G_TUSER_WIDTH-1 downto 0):=(others => '-');
+    S_AXIS_TID      : in  std_logic_vector(G_NB_MASTER_INPUT*G_TID_WIDTH-1 downto 0):=(others => '-');
+    S_AXIS_TDEST    : in  std_logic_vector(G_NB_MASTER_INPUT*G_TDEST_WIDTH-1 downto 0):=(others => '-');
 
     
     -- master interface

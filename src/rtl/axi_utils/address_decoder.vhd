@@ -11,7 +11,8 @@ entity address_decoder is
   generic(
     G_ADDR_WIDTH          : integer := 32;
     G_NB_SLAVE            : integer := 1;
-    G_MAPPING_FILE        : string  := "mapping.txt"
+    G_MAPPING_FILE        : string  := "mapping.txt";
+    G_TDEST_WIDTH         : integer :=1
   );
   port(
     -- address
@@ -24,7 +25,6 @@ end entity;
 
 architecture rtl of address_decoder is
 
-  constant C_TDEST_WIDTH : integer := ceil(log2(real(G_NB_SLAVE)));
 
   type t_addr_array is array(0 to 2*G_NB_SLAVE-1) of std_logic_vector(G_ADDR_WIDTH-1 downto 0);
     
@@ -61,7 +61,7 @@ begin
     if (ADDR_TVALID = '1') then
       for i in 0 to G_NB_SLAVE loop
         if (addr_int>=addr_array(2*i) and addr_int<=addr_int(2*i+1)) then
-          TDEST <= std_logic_vector(to_unsigned(i, C_TDEST_WIDTH));
+          TDEST <= std_logic_vector(to_unsigned(i, G_TDEST_WIDTH));
           exit;
         end if;
       end loop;

@@ -15,9 +15,9 @@ entity axis_demux is
     G_TDATA_WIDTH       : integer := 1
     G_TUSER_WIDTH       : integer := 1;
     G_TDEST_WIDTH       : integer := 1:
-    G_TID_WIDTH         : integer := 1; 
-   
+    G_TID_WIDTH         : integer := 1
   );
+  
   port(
     -- masters interfaces
     M_AXIS_TDATA    : out std_logic_vector(G_NB_MASTER_OUTPUT*G_TDATA_WIDTH-1 downto 0);
