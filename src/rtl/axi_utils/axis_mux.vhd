@@ -1,5 +1,3 @@
-library work;
-  use work.poulpi32_pkg.all;
 
 library ieee;
   use ieee.std_logic_1164.all;
@@ -15,7 +13,7 @@ entity axis_mux is
     G_TDATA_WIDTH     : integer := 1;
     G_TUSER_WIDTH     : integer := 1;
     G_TDEST_WIDTH     : integer := 1;
-    G_TID_WIDTH       : integer:=1
+    G_TID_WIDTH       : integer :=1
   );
   
   port(
@@ -25,8 +23,8 @@ entity axis_mux is
     S_AXIS_TREADY   : out std_logic_vector(G_NB_SLAVE_INPUT-1 downto 0);
     S_AXIS_TKEEP    : in  std_logic_vector(G_NB_SLAVE_INPUT*(G_TDATA_WIDTH/8)-1 downto 0):=(others => '-');
     S_AXIS_TUSER    : in  std_logic_vector(G_NB_SLAVE_INPUT*G_TUSER_WIDTH-1 downto 0):=(others => '-');
-    S_AXIS_TID      : in  std_logic_vector(G_NB_MASTER_INPUT*G_TID_WIDTH-1 downto 0):=(others => '-');
-    S_AXIS_TDEST    : in  std_logic_vector(G_NB_MASTER_INPUT*G_TDEST_WIDTH-1 downto 0):=(others => '-');
+    S_AXIS_TID      : in  std_logic_vector(G_NB_SLAVE_INPUT*G_TID_WIDTH-1 downto 0):=(others => '-');
+    S_AXIS_TDEST    : in  std_logic_vector(G_NB_SLAVE_INPUT*G_TDEST_WIDTH-1 downto 0):=(others => '-');
 
     
     -- master interface
@@ -36,7 +34,7 @@ entity axis_mux is
     M_AXIS_TKEEP    : out std_logic_vector((G_TDATA_WIDTH/8)-1 downto 0);
     M_AXIS_TUSER    : out std_logic_vector(G_TUSER_WIDTH-1 downto 0);
     M_AXIS_TID      : out std_logic_vector(G_TID_WIDTH-1 downto 0);
-    M_AXIS_TDEST    : out std_logic_vector(G_TEST_WIDTH-1 downto 0)
+    M_AXIS_TDEST    : out std_logic_vector(G_TDEST_WIDTH-1 downto 0)
 
   );
 end entity;
@@ -63,7 +61,7 @@ begin
         M_AXIS_TKEEP      <= S_AXIS_TKEEP((G_TDATA_WIDTH/8)*(i+1)-1 downto (G_TDATA_WIDTH/8)*i);
         M_AXIS_TUSER      <= S_AXIS_TUSER(G_TUSER_WIDTH*(i+1)-1 downto G_TUSER_WIDTH*i);
         M_AXIS_TID        <= S_AXIS_TID(G_TID_WIDTH*(i+1)-1 downto G_TID_WIDTH*i);
-        M_AXIS_TDEST      <= S_AXIS_TDEST(G_TDATA_WIDTH*(i+1)-1 downto G_TDEST_WIDTH*i);
+        M_AXIS_TDEST      <= S_AXIS_TDEST(G_TDEST_WIDTH*(i+1)-1 downto G_TDEST_WIDTH*i);
         exit;
       end if;
     end loop;

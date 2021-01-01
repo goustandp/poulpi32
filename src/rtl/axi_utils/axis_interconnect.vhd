@@ -50,7 +50,7 @@ architecture rtl of axis_interconnect is
       G_TDATA_WIDTH       : integer := 1
       G_TUSER_WIDTH       : integer := 1;
       G_TDEST_WIDTH       : integer := 1:
-      G_TID_WIDTH         : integer := 1;
+      G_TID_WIDTH         : integer := 1
     );
     
     port(
@@ -79,7 +79,7 @@ architecture rtl of axis_interconnect is
       G_TDATA_WIDTH     : integer := 1;
       G_TUSER_WIDTH     : integer := 1;
       G_TDEST_WIDTH     : integer := 1;
-      G_TID_WIDTH       : integer:=1
+      G_TID_WIDTH       : integer :=1
     );
     
     port(
@@ -149,7 +149,7 @@ begin
         S_AXIS_TKEEP    => S_AXIS_TKEEP((G_TDATA_WIDTH/8)*(i+1)-1 downto (G_TDATA_WIDTH/8)*i);
         S_AXIS_TUSER    => S_AXIS_TUSER(G_TUSER_WIDTH*(i+1)-1 downto G_TUSER_WIDTH*i);
         S_AXIS_TDEST    => S_AXIS_TDEST(G_TDEST_WIDTH*(i+1)-1 downto G_TDEST_WIDTH*i);
-        S_AXIS_TID      => S_AXIS_TID(G_TID_WIDTH*(i+1)-1 downto G_TID_WIDTH*i);   
+        S_AXIS_TID      => S_AXIS_TID(G_TID_WIDTH*(i+1)-1 downto G_TID_WIDTH*i)
       );
 
 
@@ -194,7 +194,7 @@ begin
         M_AXIS_TKEEP    => M_AXIS_TKEEP((G_TDATA_WIDTH/8)*(i+1)-1 downto (G_TDATA_WIDTH/8)*i);
         M_AXIS_TUSER    => M_AXIS_TUSER(G_TUSER_WIDTH*(i+1)-1 downto G_TUSER_WIDTH*i);
         M_AXIS_TDEST    => M_AXIS_TDEST(G_TDEST_WIDTH*(i+1)-1 downto G_TDEST_WIDTH*i);
-        M_AXIS_TID      => M_AXIS_TID(G_TID_WIDTH*(i+1)-1 downto G_TID_WIDTH*i);   
+        M_AXIS_TID      => M_AXIS_TID(G_TID_WIDTH*(i+1)-1 downto G_TID_WIDTH*i)
       );
   end generate GEN_MASTER_WRITE;
   
