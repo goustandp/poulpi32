@@ -1,15 +1,20 @@
+library ieee;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
 
+library std;
+  use std.textio.all;
 
 entity resp_manager is
   generic(
-    G_TDEST_WIDTH : integer:=1;
+    G_TDEST_WIDTH : integer:=1
   );
   port(
     CLK         : in  std_logic;
     RSTN        : in  std_logic;
     
     AXIS_TREADY : in std_logic;
-    AXIS_TVALDI : in std_logic;
+    AXIS_TVALID : in std_logic;
     
     TID         : in  std_logic_vector(G_TDEST_WIDTH-1 downto 0);
     TDEST       : out std_logic_vector(G_TDEST_WIDTH-1 downto 0)

@@ -9,7 +9,7 @@ library std;
   use std.textio.all;
 
 
-entity axi_bram is
+entity axil_bram is
   generic(
     G_ADDR_WIDTH      : integer;
     G_INIT_FILE_PATH  : string
@@ -64,9 +64,9 @@ entity axi_bram is
     AXI_B_RDATA       : out std_logic_vector(31 downto 0);
     AXI_B_RESP        : out std_logic_vector(1  downto 0)
   );
-end entity axi_bram;
+end entity axil_bram;
 
-architecture rtl of axi_bram is
+architecture rtl of axil_bram is
   type t_ram is array (integer range <>) of std_logic_vector(31 downto 0);
   type t_char_file is file of integer;
 
