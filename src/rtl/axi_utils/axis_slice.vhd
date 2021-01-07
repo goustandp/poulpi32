@@ -58,7 +58,7 @@ begin
   M_AXIS_TDATA  <= m_tdata(G_TDEST_WIDTH+G_TID_WIDTH+G_TUSER_WIDTH+G_TDATA_WIDTH/8+G_TDATA_WIDTH-1 downto G_TDEST_WIDTH+G_TID_WIDTH+G_TUSER_WIDTH+G_TDATA_WIDTH/8);
   M_AXIS_TKEEP  <= m_tdata(G_TDEST_WIDTH+G_TID_WIDTH+G_TUSER_WIDTH+G_TDATA_WIDTH/8-1 downto G_TDEST_WIDTH+G_TID_WIDTH+G_TUSER_WIDTH);
   M_AXIS_TUSER  <= m_tdata(G_TDEST_WIDTH+G_TID_WIDTH+G_TUSER_WIDTH-1 downto G_TDEST_WIDTH+G_TID_WIDTH);
-  M_AXIS_TID    <= m_tdata(G_TDEST_WIDTH+G_TID_WIDTH-1 downto 0);
+  M_AXIS_TID    <= m_tdata(G_TDEST_WIDTH+G_TID_WIDTH-1 downto G_TDEST_WIDTH);
   M_AXIS_TDEST  <= m_tdata(G_TDEST_WIDTH-1 downto 0);
   
   S_AXIS_TREADY <= s_tready;
@@ -75,6 +75,11 @@ begin
         m_tdata   <= (others => '0');
       else
         
+        --data taken on master interface
+        if (m_tvalid = '1' and M_AXIS_TREADY = '1') then
+          m_tvalid  <= '0';
+        end if;
+        
         -- take data on slave interface
         if (s_tready = '1' and S_AXIS_TVALID = '1') then
           s_tready <= '0';
@@ -82,12 +87,7 @@ begin
           m_tdata  <= s_tdata;
         end if;
         
-        --data taken on master interface
-        if (m_tvalid = '1' and M_AXIS_TREADY = '1') then
-          m_tvalid  <= '0';
-        end if;
-        
-        if (m_tvalid = '0' or M_AXIS_TREADY = '1') then
+        if ((M_AXIS_TREADY = '1') or (m_tvalid = '0' and S_AXIS_TVALID = '0')) then
           s_tready  <= '1';
         end if;
     
