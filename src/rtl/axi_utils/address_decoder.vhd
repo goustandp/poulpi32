@@ -10,6 +10,8 @@ library std;
 
 
 
+
+
 entity address_decoder is 
   generic(
     G_ADDR_WIDTH          : integer := 32;
@@ -31,20 +33,20 @@ architecture rtl of address_decoder is
 
   type t_addr_array is array(0 to 2*G_NB_SLAVE-1) of integer;
     
-  function init_addr_array(file_path : in string) return t_addr_array is
+  impure function init_addr_array(file_path : in string) return t_addr_array is
     file file_ptr           : text;
     variable v_line         : line;
     variable v_addr_array   : t_addr_array;
-    variable v_addr         : integer;
+    variable v_addr_slv     : std_logic_vector(G_ADDR_WIDTH-1 downto 0);
     begin
       file_open(file_ptr, file_path, read_mode);
       for i in 0 to G_NB_SLAVE-1 loop
         if not(endfile(file_ptr)) then
           readline(file_ptr, v_line);
-          read(v_line, v_addr);
-          v_addr_array(i) := v_addr; --low addr for slave i
-          read(v_line, v_addr);
-          v_addr_array(i) := v_addr; -- high addr for slave i
+          hread(v_line, v_addr_slv);
+          v_addr_array(i) := to_integer(unsigned(v_addr_slv)); --low addr for slave i
+          hread(v_line, v_addr_slv);
+          v_addr_array(i) := to_integer(unsigned(v_addr_slv)); -- high addr for slave i
         end if;
       end loop;
       file_close(file_ptr);

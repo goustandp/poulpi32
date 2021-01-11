@@ -67,14 +67,39 @@ entity axil_bram is
 end entity axil_bram;
 
 architecture rtl of axil_bram is
-  type t_ram is array (integer range <>) of std_logic_vector(31 downto 0);
+  
+  type t_ram_array is array (2**G_ADDR_WIDTH-1 downto 0)of std_logic_vector(31 downto 0);
+  
+  type t_ram is protected
+    procedure SetValue;
+    procedure GetValue;
+  end protected t_ram;  
+  
+  type t_ram is protected body
+    variable v_ram_array : t_ram_array;
+    procedure SetValue(signal addr : in integer; signal new_value : in std_logic_vector(31 downto 0); signal strb : in std_logic_vector(3 downto 0)) is
+    begin
+      for i in 0 to 3 loop
+        if (strb(i) = '1') then
+          v_ram_array(addr)(i*8+7 downto i*8)  := new_value(i*8+7 downto i*8);
+        end if;
+      end loop;
+    end procedure;
+    
+    procedure GetValue(signal addr : in integer; signal ram_value : out std_logic_vector(31 downto 0)) is
+    begin
+      ram_value <= v_ram_array(addr);
+    end procedure;
+
+  end protected body t_ram;
+  
   type t_char_file is file of integer;
 
   
-  function init_ram(addr_width : in integer; file_path : in string) return t_ram is
+  impure function init_ram(addr_width : in integer; file_path : in string) return t_ram is
     file file_ptr      : t_char_file;
     variable v_ram_size   : integer:= 2**addr_width;
-    variable v_ram        : t_ram(2**addr_width-1 downto 0);
+    variable v_ram        : t_ram;
     variable v_data       : integer;
     begin
       file_open(file_ptr, file_path, read_mode);
@@ -84,7 +109,7 @@ architecture rtl of axil_bram is
         else
           v_data  := 0; --fill with zeros
         end if;
-        v_ram(i):= std_logic_vector(to_signed(v_data, 32));
+        v_ram.SetValue(i, std_logic_vector(to_signed(v_data, 32)), "1111");
       end loop;
       file_close(file_ptr);
       return v_ram;
@@ -92,7 +117,7 @@ architecture rtl of axil_bram is
   
   
   
-  shared variable ram : t_ram(2**G_ADDR_WIDTH-1 downto 0):=init_ram(G_ADDR_WIDTH, G_INIT_FILE_PATH);
+  shared variable ram : t_ram:=init_ram(G_ADDR_WIDTH, G_INIT_FILE_PATH);
     
   signal axi_a_awready_i     : std_logic;
   signal axi_a_wready_i      : std_logic;
@@ -158,16 +183,12 @@ begin
         if (AXI_A_WVALID = '1' and axi_a_wready_i = '1') then
           axi_a_wready_i  <= '0';
           axi_a_bvalid_i  <= '1';
-          for i in 0 to 3 loop
-            if (AXI_A_WSTRB(i) = '1') then
-              ram(to_integer(addr_a))(i*8+7 downto i*8)  := AXI_A_WDATA(i*8+7 downto i*8);
-            end if;
-          end loop;
+          ram.SetValue(i, std_logic_vector(to_signed(v_data, 32)), AXI_A_WSTRB);
         end if;
         
         -- read access 
         if (AXI_A_ARVALID = '1') then
-          AXI_A_RDATA     <= ram(to_integer(unsigned(AXI_A_ARADDR(G_ADDR_WIDTH+1 downto 2))));
+          ram.GetValue(to_integer(unsigned(AXI_A_ARADDR(G_ADDR_WIDTH+1 downto 2))), AXI_A_RDATA);
           axi_a_rvalid_i  <= '1';
         end if;
         
@@ -206,16 +227,12 @@ begin
         if (AXI_B_WVALID = '1' and axi_b_wready_i = '1') then
           axi_b_wready_i  <= '0';
           axi_b_bvalid_i  <= '1';
-          for i in 0 to 3 loop
-            if (AXI_B_WSTRB(i) = '1') then
-              ram(to_integer(addr_b))(i*8+7 downto i*8)  := AXI_B_WDATA(i*8+7 downto i*8);
-            end if;
-          end loop;
+          ram.SetValue(i, std_logic_vector(to_signed(v_data, 32)), AXI_B_WSTRB);
         end if;
         
         -- read access 
         if (AXI_B_ARVALID = '1') then
-          AXI_B_RDATA     <= ram(to_integer(unsigned(AXI_B_ARADDR(G_ADDR_WIDTH+1 downto 2))));
+          ram.GetValue(to_integer(unsigned(AXI_A_ARADDR(G_ADDR_WIDTH+1 downto 2))), AXI_B_RDATA);
           axi_b_rvalid_i  <= '1';
         end if;
         
