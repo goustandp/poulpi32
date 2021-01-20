@@ -16,8 +16,8 @@ entity axil_bram is
     );
   port(
     -- clock and reset
-    CLK               : in  std_logic;
-    RSTN              : in  std_logic;
+    CLK_A             : in  std_logic;
+    RSTN_A            : in  std_logic;
     -- PORT A
     -- write access
     AXI_A_AWVALID     : in  std_logic;
@@ -42,6 +42,8 @@ entity axil_bram is
     AXI_A_RESP        : out std_logic_vector(1  downto 0);
     
     -- PORT B
+    CLK_B             : in  std_logic;
+    RSTN_B            : in  std_logic;
     -- write access
     AXI_B_AWVALID     : in  std_logic;
     AXI_B_AWREADY     : out std_logic;
@@ -69,20 +71,15 @@ end entity axil_bram;
 architecture rtl of axil_bram is
   
   -- cutoms type
-  type t_ram_array is array (2**G_ADDR_WIDTH-1 downto 0)of std_logic_vector(31 downto 0);
+  type t_ram is array (2**G_ADDR_WIDTH-1 downto 0)of std_logic_vector(31 downto 0);
     
   type t_char_file is file of integer;
+  
 
-  
-  type t_ram is protected
-    procedure SetValue(variable addr : in integer; signal new_value : in std_logic_vector(31 downto 0); signal strb : in std_logic_vector(3 downto 0));
-    procedure GetValue(variable addr : in integer; signal ram_value : out std_logic_vector(31 downto 0));
-  end protected t_ram;  
-  
   -- init function
-  impure function init_ram return t_ram_array is
+  impure function init_ram return t_ram is
   file file_ptr      : t_char_file;
-  variable v_ram        : t_ram_array;
+  variable v_ram        : t_ram;
   variable v_data       : integer;
   begin
     file_open(file_ptr, G_INIT_FILE_PATH, read_mode);
@@ -97,37 +94,11 @@ architecture rtl of axil_bram is
     file_close(file_ptr);
     return v_ram;
   end function;
-  
-  type t_ram is protected body
-    
-    -- memory array
-    variable v_ram_array : t_ram_array:=init_ram;
-    
-    --seter
-    procedure SetValue(variable addr : in integer; signal new_value : in std_logic_vector(31 downto 0); signal strb : in std_logic_vector(3 downto 0)) is
-    begin
-      for i in 0 to 3 loop
-        if (strb(i) = '1') then
-          v_ram_array(addr)(i*8+7 downto i*8)  := new_value(i*8+7 downto i*8);
-        end if;
-      end loop;
-    end procedure;
-    
-    -- geter
-    procedure GetValue(variable addr : in integer; signal ram_value : out std_logic_vector(31 downto 0)) is
-    begin
-      ram_value <= v_ram_array(addr);
-    end procedure;
-
-  end protected body t_ram;
-  
-
-  
 
   
   
   
-  shared variable ram : t_ram;
+  signal ram : t_ram:=init_ram;
     
   signal axi_a_awready_i     : std_logic;
   signal axi_a_wready_i      : std_logic;
@@ -163,18 +134,25 @@ begin
     AXI_B_RVALID      <= axi_b_rvalid_i;   
     AXI_B_RESP        <= C_OKAY;     
   
-  P_PORT_A  : process(CLK) 
-    variable v_waddr   : integer;
-    variable v_raddr   : integer;
+  P_PORT  : process(CLK_A, CLK_B) 
+    variable v_awaddr   : integer;
+    variable v_araddr   : integer;
+    variable v_astrb    : std_logic_vector(3 downto 0);
+    variable v_bwaddr   : integer;
+    variable v_braddr   : integer;
+    variable v_bstrb    : std_logic_vector(3 downto 0);
   begin 
-    if rising_edge(CLK) then
-      if (RSTN = '0') then
+  
+    -- port A
+    if rising_edge(CLK_A) then
+      if (RSTN_A = '0') then
         axi_a_wready_i  <= '0';
         axi_a_bvalid_i  <= '0';
         axi_a_rvalid_i  <= '0';
         axi_a_arready_i <= '0';
-        v_waddr         := 0;
-        v_raddr         := 0; 
+        v_awaddr        := 0;
+        v_araddr        := 0; 
+        v_astrb         := (others => '0');
       else
         
         -- init
@@ -200,7 +178,8 @@ begin
         
         -- write access address
         if (AXI_A_AWVALID = '1' and axi_a_wready_i = '1') then
-          v_waddr          := to_integer(unsigned(AXI_A_AWADDR(G_ADDR_WIDTH+1 downto 2)));
+          v_astrb          := AXI_A_WSTRB;
+          v_awaddr          := to_integer(unsigned(AXI_A_AWADDR(G_ADDR_WIDTH+1 downto 2)));
           axi_a_wready_i  <= '0';
         end if;
         
@@ -208,36 +187,36 @@ begin
         if (AXI_A_WVALID = '1' and axi_a_wready_i = '1') then
           axi_a_wready_i  <= '0';
           axi_a_bvalid_i  <= '1';
-          ram.SetValue(v_waddr,AXI_A_WDATA , AXI_A_WSTRB);
+          ram(v_awaddr)  <= AXI_A_WDATA;
+          for i in 0 to 3 loop
+            if (v_astrb(i) = '1') then
+              ram(v_awaddr)(8*(i+1)-1 downto i*8)  <= AXI_A_WDATA(8*(i+1)-1 downto i*8);
+            end if;
+          end loop;
         end if;
         
         -- read access address
         if (AXI_A_ARVALID = '1' and axi_a_arready_i = '1') then
-          v_raddr         := to_integer(unsigned(AXI_A_ARADDR(G_ADDR_WIDTH+1 downto 2)));
+          v_araddr        := to_integer(unsigned(AXI_A_ARADDR(G_ADDR_WIDTH+1 downto 2)));
           axi_a_rvalid_i  <= '1';
           axi_a_arready_i <= '0';
-          ram.GetValue(v_raddr, AXI_A_RDATA);
+          AXI_A_RDATA     <= ram(v_araddr);
         end if;
-        
-      
       end if;
     end if;
-  end process;
-        
-        
-        
-  P_PORT_B  : process(CLK) 
-    variable v_waddr    : integer;
-    variable v_raddr    : integer;
-  begin 
-    if rising_edge(CLK) then
-      if (RSTN = '0') then
+    
+    
+    
+    -- port B
+    if rising_edge(CLK_B) then
+      if (RSTN_B = '0') then
         axi_b_wready_i  <= '0';
         axi_b_bvalid_i  <= '0';
         axi_b_rvalid_i  <= '0';
         axi_b_arready_i <= '0';
-        v_waddr         := 0;
-        v_raddr         := 0;
+        v_bwaddr        := 0;
+        v_braddr        := 0; 
+        v_bstrb         := (others => '0');
       else
         
         -- init
@@ -263,7 +242,8 @@ begin
         
         -- write access address
         if (AXI_B_AWVALID = '1' and axi_b_wready_i = '1') then
-          v_waddr          := to_integer(unsigned(AXI_B_AWADDR(G_ADDR_WIDTH+1 downto 2)));
+          v_bstrb          := AXI_B_WSTRB;
+          v_bwaddr         := to_integer(unsigned(AXI_B_AWADDR(G_ADDR_WIDTH+1 downto 2)));
           axi_b_wready_i  <= '0';
         end if;
         
@@ -271,20 +251,27 @@ begin
         if (AXI_B_WVALID = '1' and axi_b_wready_i = '1') then
           axi_b_wready_i  <= '0';
           axi_b_bvalid_i  <= '1';
-          ram.SetValue(v_waddr,AXI_B_WDATA , AXI_B_WSTRB);
+          ram(v_bwaddr)   <= AXI_B_WDATA;
+          for i in 0 to 3 loop
+            if (v_bstrb(i) = '1') then
+              ram(v_bwaddr)(8*(i+1)-1 downto i*8)  <= AXI_B_WDATA(8*(i+1)-1 downto i*8);
+            end if;
+          end loop;
         end if;
         
         -- read access address
         if (AXI_B_ARVALID = '1' and axi_b_arready_i = '1') then
-          v_raddr         := to_integer(unsigned(AXI_B_ARADDR(G_ADDR_WIDTH+1 downto 2)));
+          v_braddr        := to_integer(unsigned(AXI_B_ARADDR(G_ADDR_WIDTH+1 downto 2)));
           axi_b_rvalid_i  <= '1';
           axi_b_arready_i <= '0';
-          ram.GetValue(v_raddr, AXI_B_RDATA);
+          AXI_B_RDATA     <= ram(v_braddr);
         end if;
-        
-      
       end if;
     end if;
+    
+    
   end process;
+        
+        
 
 end rtl;
