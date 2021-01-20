@@ -12,7 +12,7 @@ entity axil_crossbar is
     G_ADDR_WIDTH          : integer := 32;
     G_DATA_WIDTH          : integer := 32;
     G_NB_SLAVE            : integer := 1;
-    G_NB_MASTER            : integer := 1;
+    G_NB_MASTER           : integer := 1;
     G_MAPPING_FILE        : string  := "mapping.txt";
     G_EN_SLAVE_REGISTER   : boolean := false; --TODO: add sregister slice
     G_EN_MIDDLE_REGISTER  : boolean := false;
@@ -78,7 +78,7 @@ architecture rtl of axil_crossbar is
   component address_decoder is 
     generic(
       G_ADDR_WIDTH          : integer := 32;
-      G_NB_SLAVE            : integer := 1;
+      G_NB_MASTER           : integer := 1;
       G_MAPPING_FILE        : string  := "mapping.txt";
       G_TDEST_WIDTH         : integer := 1
     );
@@ -147,14 +147,14 @@ architecture rtl of axil_crossbar is
   signal s_w_tdest          : std_logic_vector(C_TDEST_WIDTH*G_NB_SLAVE-1 downto 0);
   signal m_w_tid            : std_logic_vector(C_TDEST_WIDTH*G_NB_MASTER-1 downto 0);
   signal m_w_tdest          : std_logic_vector(C_TDEST_WIDTH*G_NB_MASTER-1 downto 0);
-  signal m_axi_awvalid_s    : std_logic_vector(G_NB_SLAVE-1 downto 0);
+  signal m_axi_awvalid_s    : std_logic_vector(G_NB_MASTER-1 downto 0);
   
   
   signal s_r_tid            : std_logic_vector(C_TDEST_WIDTH*G_NB_SLAVE-1 downto 0);
   signal s_r_tdest          : std_logic_vector(C_TDEST_WIDTH*G_NB_SLAVE-1 downto 0);
   signal m_r_tid            : std_logic_vector(C_TDEST_WIDTH*G_NB_MASTER-1 downto 0);
   signal m_r_tdest          : std_logic_vector(C_TDEST_WIDTH*G_NB_MASTER-1 downto 0);
-  signal m_axi_arvalid_s    : std_logic_vector(G_NB_SLAVE-1 downto 0);
+  signal m_axi_arvalid_s    : std_logic_vector(G_NB_MASTER-1 downto 0);
   
 begin
 
@@ -166,7 +166,7 @@ begin
       inst_address_decoder :  address_decoder
         generic map(
           G_ADDR_WIDTH          => G_ADDR_WIDTH, 
-          G_NB_SLAVE            => G_NB_SLAVE,    
+          G_NB_MASTER           => G_NB_MASTER,    
           G_MAPPING_FILE        => G_MAPPING_FILE,
           G_TDEST_WIDTH         => C_TDEST_WIDTH 
         )
@@ -177,7 +177,7 @@ begin
         );
     end generate;
     
-    GEN_MASTER_WRITE : for i in 0 to G_NB_SLAVE-1 generate
+    GEN_MASTER_WRITE : for i in 0 to G_NB_MASTER-1 generate
       inst_resp_manager: resp_manager
         generic map(
           G_TDEST_WIDTH   => C_TDEST_WIDTH
@@ -271,7 +271,7 @@ begin
       inst_address_decoder :  address_decoder
         generic map(
           G_ADDR_WIDTH          => G_ADDR_WIDTH, 
-          G_NB_SLAVE            => G_NB_SLAVE,    
+          G_NB_MASTER           => G_NB_MASTER,    
           G_MAPPING_FILE        => G_MAPPING_FILE,
           G_TDEST_WIDTH         => C_TDEST_WIDTH 
         )
@@ -282,7 +282,7 @@ begin
         );
     end generate;
     
-    GEN_MASTER_READ : for i in 0 to G_NB_SLAVE-1 generate
+    GEN_MASTER_READ : for i in 0 to G_NB_MASTER-1 generate
       inst_resp_manager: resp_manager
         generic map(
           G_TDEST_WIDTH   => C_TDEST_WIDTH
