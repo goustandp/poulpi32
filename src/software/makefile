@@ -13,10 +13,10 @@ $(BUILDDIR)/test.o: $(PROJDIR)/test.c
 	$(CC) -c $(PROJDIR)/test.c -o $(BUILDDIR)/test.o
 
 $(BUILDDIR)/a.out: $(BUILDDIR)/test.o $(BUILDDIR)/startup.o
-	$(CC) -nostartfiles $(BUILDDIR)/test.o -o $(BUILDDIR)/a.out -Wl,-T $(LDSCRIPT)
+	$(CC) -nostartfiles -Wl,-T -Wl,$(LDSCRIPT) $(BUILDDIR)/test.o -o $(BUILDDIR)/a.out 
 
 all: $(BUILDDIR)/a.out
-	$(OBJCOPY) -O binary $(BUILDDIR)/a.out mem.bin
+	$(OBJCOPY) -S -O binary $(BUILDDIR)/a.out mem.bin 
 
 clean:
 	rm -f $(BUILDDIR)/*.o $(BUILDDIR)/*.out mem.bin

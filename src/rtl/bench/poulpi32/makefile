@@ -1,6 +1,6 @@
 
 
-SIMTIME= 2000us
+SIMTIME= 4000us
 GHDL=ghdl
 GHDLFLAGS=-frelaxed --std=02
 GHDLRUNFLAGS=--wave=./toto.ghw --stop-time=$(SIMTIME)
@@ -8,7 +8,7 @@ GHDLRUNFLAGS=--wave=./toto.ghw --stop-time=$(SIMTIME)
 
 # Default target : elaborate
 all : run
-	gtkwave ./toto.ghw
+	gtkwave ./toto.ghw &
 
 # Elaborate target.  Almost useless
 elab : init

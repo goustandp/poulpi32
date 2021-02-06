@@ -1,7 +1,10 @@
 
 
+
+
 .section .text
 .option norelax
+
 
 
 /* Main program
@@ -15,7 +18,7 @@ _start:
     addi x5, zero, 0
     addi x6, zero, 0
     addi x7, zero, 0
-    addi x8, zero, 0
+    addi x8, zero, 00
     addi x9, zero, 0
     addi x10, zero, 0
     addi x11, zero, 0
@@ -39,7 +42,7 @@ _start:
     addi x29, zero, 0
     addi x30, zero, 0
     addi x31, zero, 0
-    li sp, _stack_end
+    li sp, 0x100
     jal ra,main
 
 

@@ -122,8 +122,9 @@ architecture behave of bench_poulpi32 is
   
   component axil_bram is
     generic(
-      G_ADDR_WIDTH      : integer;
-      G_INIT_FILE_PATH  : string
+      G_ADDR_WIDTH        : integer;
+      G_INIT_FILE_PATH    : string;
+      G_INIT_FILE_OFFSET  : integer:=0
       );
     port(
       -- clock and reset
@@ -212,8 +213,9 @@ architecture behave of bench_poulpi32 is
   end component uart_emulator;
   
   
-  constant C_PC_RST_VALUE           : std_logic_vector(31 downto 0):=x"00000000";
-  constant C_ADDR_WIDTH             : integer :=10;
+  constant C_PC_RST_VALUE           : std_logic_vector(31 downto 0):=x"00000100";
+  constant C_ADDR_WIDTH             : integer :=12;
+  constant C_STACK_SIZE             : integer := 256;
   constant C_PROGRAM_FILE_PATH      : string:="../../../software/mem.bin";
   constant C_CLK_PERIODE            : time:=1 us;
   
@@ -434,8 +436,10 @@ begin
 
   inst_axil_bram : axil_bram
     generic map(
-      G_ADDR_WIDTH      => C_ADDR_WIDTH,        
-      G_INIT_FILE_PATH  => C_PROGRAM_FILE_PATH 
+      G_ADDR_WIDTH          => C_ADDR_WIDTH,        
+      G_INIT_FILE_PATH      => C_PROGRAM_FILE_PATH,
+      G_INIT_FILE_OFFSET    => C_STACK_SIZE
+      
       )
     port map(
       CLK_A             => clk,

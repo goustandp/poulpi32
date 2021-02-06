@@ -11,8 +11,9 @@ library std;
 
 entity axil_bram is
   generic(
-    G_ADDR_WIDTH      : integer;
-    G_INIT_FILE_PATH  : string
+    G_ADDR_WIDTH        : integer;
+    G_INIT_FILE_PATH    : string;
+    G_INIT_FILE_OFFSET  : integer:=0
     );
   port(
     -- clock and reset
@@ -71,19 +72,23 @@ end entity axil_bram;
 architecture rtl of axil_bram is
   
   -- cutoms type
-  type t_ram is array (2**G_ADDR_WIDTH-1 downto 0)of std_logic_vector(31 downto 0);
+  type t_ram is array (2**(G_ADDR_WIDTH-2)-1 downto 0) of std_logic_vector(31 downto 0);
     
   type t_char_file is file of integer;
   
 
   -- init function
   impure function init_ram return t_ram is
-  file file_ptr      : t_char_file;
+  file file_ptr         : t_char_file;
   variable v_ram        : t_ram;
   variable v_data       : integer;
   begin
     file_open(file_ptr, G_INIT_FILE_PATH, read_mode);
-    for i in 0 to G_ADDR_WIDTH-1 loop
+    for i in 0 to (G_INIT_FILE_OFFSET/4)-1 loop
+      v_ram(i):= std_logic_vector(to_signed(0, 32));
+    end loop;
+    
+    for i in (G_INIT_FILE_OFFSET/4) to 2**(G_ADDR_WIDTH-2)-1 loop
       if not(endfile(file_ptr)) then
         read(file_ptr, v_data);
       else
@@ -91,6 +96,11 @@ architecture rtl of axil_bram is
       end if;
       v_ram(i):= std_logic_vector(to_signed(v_data, 32));
     end loop;
+    
+    if not(endfile(file_ptr)) then
+      report "code doesnt fit in RAM" severity failure;
+    end if;
+    
     file_close(file_ptr);
     return v_ram;
   end function;
@@ -146,6 +156,7 @@ begin
     -- port A
     if rising_edge(CLK_A) then
       if (RSTN_A = '0') then
+        axi_a_awready_i <= '0';
         axi_a_wready_i  <= '0';
         axi_a_bvalid_i  <= '0';
         axi_a_rvalid_i  <= '0';
@@ -161,7 +172,8 @@ begin
         end if;
         
         if (axi_a_wready_i = '0' and axi_a_bvalid_i ='0') then
-          axi_a_wready_i <= '1';
+          axi_a_wready_i  <= '1';
+          axi_a_awready_i <= '1';
         end if;
         
         -- read resp
@@ -174,13 +186,14 @@ begin
         if (axi_a_bvalid_i  = '1' and AXI_A_BREADY = '1') then
           axi_a_bvalid_i  <= '0';
           axi_a_wready_i  <= '1';
+          axi_a_awready_i <= '1';
         end if;
         
         -- write access address
-        if (AXI_A_AWVALID = '1' and axi_a_wready_i = '1') then
+        if (AXI_A_AWVALID = '1' and axi_a_awready_i = '1') then
           v_astrb          := AXI_A_WSTRB;
-          v_awaddr          := to_integer(unsigned(AXI_A_AWADDR(G_ADDR_WIDTH+1 downto 2)));
-          axi_a_wready_i  <= '0';
+          v_awaddr         := to_integer(unsigned(AXI_A_AWADDR(G_ADDR_WIDTH+1 downto 2)));
+          axi_a_awready_i  <= '0';
         end if;
         
         -- write access data
@@ -210,6 +223,7 @@ begin
     -- port B
     if rising_edge(CLK_B) then
       if (RSTN_B = '0') then
+        axi_b_awready_i <= '0';
         axi_b_wready_i  <= '0';
         axi_b_bvalid_i  <= '0';
         axi_b_rvalid_i  <= '0';
@@ -225,7 +239,8 @@ begin
         end if;
         
         if (axi_b_wready_i = '0' and axi_b_bvalid_i ='0') then
-          axi_b_wready_i <= '1';
+          axi_b_awready_i <= '1';
+          axi_b_wready_i  <= '1';
         end if;
         
         -- read resp
@@ -238,13 +253,14 @@ begin
         if (axi_b_bvalid_i  = '1' and AXI_B_BREADY = '1') then
           axi_b_bvalid_i  <= '0';
           axi_b_wready_i  <= '1';
+          axi_b_awready_i <= '1';
         end if;
         
         -- write access address
-        if (AXI_B_AWVALID = '1' and axi_b_wready_i = '1') then
+        if (AXI_B_AWVALID = '1' and axi_b_awready_i = '1') then
           v_bstrb          := AXI_B_WSTRB;
           v_bwaddr         := to_integer(unsigned(AXI_B_AWADDR(G_ADDR_WIDTH+1 downto 2)));
-          axi_b_wready_i  <= '0';
+          axi_b_awready_i  <= '0';
         end if;
         
         -- write access data

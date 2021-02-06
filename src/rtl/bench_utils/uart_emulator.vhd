@@ -49,6 +49,10 @@ architecture behave of uart_emulator is
                                                       '[', '\', ']', '^', '_', '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',  'u', 'v', 'w', 'x',
                                                       'y', 'z', '{', '|', '}', '~');
 
+  type t_hex_table is array(0 to 15) of character;
+  
+  constant hex_table : t_hex_table:= ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F');
+
   signal axi_bvalid_s     : std_logic;
 
 begin
@@ -67,6 +71,9 @@ begin
    variable v_line      : line;
    variable v_data      : integer;
    file file_ptr        : text;
+   variable v_length    : integer;
+   variable v_0         : character := '0';
+   variable v_x         : character := 'x';
   begin
     if rising_edge(CLK) then
       if (RSTN = '0') then
@@ -99,8 +106,22 @@ begin
                 end if;
               end if;
             else
-              report "print integer: "&integer'image(v_data) severity note;
+              if (AXI_WSTRB = "0011") then
+                v_length := 16;
+              else 
+                v_length := 32;
+              end if;
+              
+              write(v_line, v_0);
+              write(v_line, v_x);
+              
+              for i in v_length/4-1 downto 0 loop
+                write(v_line, hex_table(to_integer(unsigned(AXI_WDATA(4*(i+1) -1 downto 4*i)))));
+              end loop;
+              writeline(file_ptr, v_line);
+              
             end if;
+            
 
         end if;
       end if;
