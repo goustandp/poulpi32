@@ -78,7 +78,7 @@ begin
         cnt_shift       <= (others => '0');
         ready_i         <= '1';
         ready_i_r       <= '1';
-        operande_a      <= (others => '0');
+        operande_a      <= (others => '-');
         operande_b      <= (others => '0');
         comp_result     <= '0';
         adder_result    <= (others => '0');
@@ -96,8 +96,8 @@ begin
         WE  <= '0';
         
         -- shifter (could be replace by a barrel shifter)
-        if (cnt_shift  /=0) then
-          shifter   <= shifter(31 downto 1)&bit_shift;
+        if (cnt_shift /= 0) then
+          shifter   <= shifter(30 downto 0)&bit_shift;
           cnt_shift <= cnt_shift-1;
         end if;
         
