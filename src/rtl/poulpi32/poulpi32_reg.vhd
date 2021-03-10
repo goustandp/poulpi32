@@ -9,7 +9,6 @@ library ieee;
 entity poulpi32_reg is
   port(
     CLK     : in std_logic;
-    RSTN    : in std_logic;
       
     RS_1    : out std_logic_vector(31 downto 0);
     RS_2    : out std_logic_vector(31 downto 0);

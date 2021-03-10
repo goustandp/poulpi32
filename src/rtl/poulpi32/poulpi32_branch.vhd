@@ -55,19 +55,19 @@ begin
   if rising_edge(CLK) then
     if (RSTN = '0') then
       -- internals signals
-      operande_a    <= (others => '0');
-      operande_b    <= (others => '0');
-      is_equal      <= '0';
-      comp_result   <= '0';
-      comp_resultu  <= '0';
-      branch_pc     <= (others =>'0');
-      not_branch_pc <= (others =>'0');
+      operande_a    <= (others => '-');
+      operande_b    <= (others => '-');
+      is_equal      <= '-';
+      comp_result   <= '-';
+      comp_resultu  <= '-';
+      branch_pc     <= (others =>'-');
+      not_branch_pc <= (others =>'-');
       ready_i       <= '1';
       ready_i_r     <= '1';
       -- output
-      RD            <= (others => '0');
+      RD            <= (others => '-');
       WE            <= '0';
-      NEXT_PC       <= (others => '0');
+      NEXT_PC       <= (others => '-');
     else
       
       -- compute next pc

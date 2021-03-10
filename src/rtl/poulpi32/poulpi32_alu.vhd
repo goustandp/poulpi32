@@ -79,15 +79,16 @@ begin
         ready_i         <= '1';
         ready_i_r       <= '1';
         operande_a      <= (others => '-');
-        operande_b      <= (others => '0');
+        operande_b      <= (others => '-');
         comp_result     <= '0';
-        adder_result    <= (others => '0');
-        or_result       <= (others => '0');
-        xor_result      <= (others => '0');
-        and_result      <= (others => '0');
+        adder_result    <= (others => '-');
+        or_result       <= (others => '-');
+        xor_result      <= (others => '-');
+        and_result      <= (others => '-');
+        shifter         <= (others => '-');
         --output
         WE              <= '0';
-        RD              <= (others => '0');
+        RD              <= (others => '-');
         
         -- no need to reset shifter
       else

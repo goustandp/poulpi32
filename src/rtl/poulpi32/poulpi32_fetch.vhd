@@ -47,8 +47,8 @@ begin
     if rising_edge(CLK) then
       if (RSTN = '0') then
         --outputs
-        FETCH_INSTR     <= (others => '0');
-        AXI_ARADDR      <= (others => '0');
+        FETCH_INSTR     <= (others => '-');
+        AXI_ARADDR      <= (others => '-');
         -- internals signals
         axi_arvalid_i   <= '0';
         axi_rready_i    <= '0';

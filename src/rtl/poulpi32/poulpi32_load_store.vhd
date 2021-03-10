@@ -82,13 +82,13 @@ begin
     if rising_edge(CLK) then
       if (RSTN = '0') then
         --outputs
-        RD              <= (others => '0');
-        AXI_WDATA       <= (others => '0');
-        AXI_WSTRB       <= (others => '0');
+        RD              <= (others => '-');
+        AXI_WDATA       <= (others => '-');
+        AXI_WSTRB       <= (others => '-');
         READY           <= '1';
         WE              <= '0';
         -- internals signals
-        axi_addr_i         <= (others => '0');
+        axi_addr_i         <= (others => '-');
         axi_awvalid_i      <= '0';
         axi_wvalid_i       <= '0';
         axi_bready_i       <= '0';
@@ -100,7 +100,7 @@ begin
         WE  <= '0';
       
         if (START_LOAD ='1' or START_STORE = '1') then
-          v_axi_addr      :=signed(RS_1)+signed(IMM);
+          v_axi_addr      := signed(RS_1)+signed(IMM);
           axi_addr_i      <= std_logic_vector(v_axi_addr(31 downto 2))&"00";
           addr_offset     <= to_integer(unsigned(v_axi_addr(1 downto 0)));
           AXI_WDATA       <= (others => '0');

@@ -90,15 +90,11 @@ architecture rtl of poulpi32_core is
       ALU_START_IMM     : out std_logic;
       ALU_OP_CODE_F3    : out std_logic_vector(2 downto 0);
       ALU_OP_CODE_F7    : out std_logic_vector(6 downto 0);
-      -- mux signals
-      MUX_ID            : out std_logic_vector(1 downto 0);
       -- register signals
       RS1_ID            : out std_logic_vector(4 downto 0);
       RS2_ID            : out std_logic_vector(4 downto 0);
       RD_ID             : out std_logic_vector(4 downto 0);
       -- decode register
-      RS_1              : in  std_logic_vector(31 downto 0);
-      RS_2              : in  std_logic_vector(31 downto 0);
       RD                : out std_logic_vector(31 downto 0);
       WE                : out std_logic
     );
@@ -110,7 +106,6 @@ architecture rtl of poulpi32_core is
   component poulpi32_reg is
     port(
       CLK     : in  std_logic;
-      RSTN    : in  std_logic;
         
       RS_1    : out std_logic_vector(31 downto 0);
       RS_2    : out std_logic_vector(31 downto 0);
@@ -222,9 +217,7 @@ architecture rtl of poulpi32_core is
   -- mux for registers access
   ----------------------------------------------------------------------
   component poulpi32_mux is
-    port(
-      ID        : in  std_logic_vector(1 downto 0);
-      
+    port(      
       REG_RS_1  : in  std_logic_vector(31 downto 0);
       REG_RS_2  : in  std_logic_vector(31 downto 0);
       REG_RD    : out std_logic_vector(31 downto 0);
@@ -245,8 +238,6 @@ architecture rtl of poulpi32_core is
       BR_RD     : in  std_logic_vector(31 downto 0);
       BR_WE     : in  std_logic;
       
-      DC_RS_1   : out std_logic_vector(31 downto 0);
-      DC_RS_2   : out std_logic_vector(31 downto 0);
       DC_RD     : in  std_logic_vector(31 downto 0);
       DC_WE     : in  std_logic
     );
@@ -283,7 +274,6 @@ architecture rtl of poulpi32_core is
   ----------------------------------------------------------------------
   
   -- registers
-  signal mux_id             : std_logic_vector(1  downto 0);
   signal reg_rs_1           : std_logic_vector(31 downto 0);
   signal reg_rs_2           : std_logic_vector(31 downto 0);
   signal reg_rd             : std_logic_vector(31 downto 0);
@@ -300,8 +290,6 @@ architecture rtl of poulpi32_core is
   signal br_rs_2            : std_logic_vector(31 downto 0);
   signal br_rd              : std_logic_vector(31 downto 0);
   signal br_we              : std_logic;
-  signal dc_rs_1            : std_logic_vector(31 downto 0);
-  signal dc_rs_2            : std_logic_vector(31 downto 0);
   signal dc_rd              : std_logic_vector(31 downto 0);
   signal dc_we              : std_logic;
   
@@ -371,12 +359,9 @@ begin
       ALU_START_IMM     => alu_start_imm,   
       ALU_OP_CODE_F3    => alu_op_code_f3,     
       ALU_OP_CODE_F7    => alu_op_code_f7,  
-      MUX_ID            => mux_id,
       RS1_ID            => rs1_id,
       RS2_ID            => rs2_id,
       RD_ID             => rd_id, 
-      RS_1              => dc_rs_1,
-      RS_2              => dc_rs_2,
       RD                => dc_rd,  
       WE                => dc_we  
     );
@@ -389,7 +374,6 @@ begin
   inst_poulpi32_reg : poulpi32_reg
     port map(
       CLK     => CLK,
-      RSTN    => RSTN,
       RS_1    => reg_rs_1,  
       RS_2    => reg_rs_2,  
       RD      => reg_rd,    
@@ -486,7 +470,6 @@ begin
   ----------------------------------------------------------------------
   inst_poulpi32_mux : poulpi32_mux
     port map(
-      ID        => mux_id,
       REG_RS_1  => reg_rs_1,
       REG_RS_2  => reg_rs_2,
       REG_RD    => reg_rd,  
@@ -503,8 +486,6 @@ begin
       BR_RS_2   => br_rs_2, 
       BR_RD     => br_rd,   
       BR_WE     => br_we,   
-      DC_RS_1   => dc_rs_1, 
-      DC_RS_2   => dc_rs_2, 
       DC_RD     => dc_rd,   
       DC_WE     => dc_we   
     );

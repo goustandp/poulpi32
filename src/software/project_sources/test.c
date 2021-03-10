@@ -26,17 +26,48 @@ int main(void) {
   int a;
   int b;
   int c;
-  char* l_puc_UartPtr = UART_BASE_ADDRESS;
-  c=a+b;
-  PrintAscii("toto", 4);
-  if (1) {
-    PrintAscii("la question est vite repondue", 29);
-  } else {
-    PrintAscii("tu hors de ma vue!!", 19);
+  a = 1234;
+  b = 5678;
+  c = a << 2;
+  //test sum
+  PrintAscii("test 1", 6);
+  c = a+b;
+  PrintInt(c);
+  //test shift left
+  PrintAscii("test 2", 6);
+  c = a << 2;
+  PrintInt(c);
+  // test shift right
+  PrintAscii("test 3", 6);
+  c = a >> 2;
+  PrintInt(c);
+  // test less than
+  PrintAscii("test 4", 6);
+  if (a<b) {
+    PrintAscii("OK", 2);
   }
-  PrintInt(1234);
-  PrintShort(4321);
-
+  else {
+    PrintAscii("KO", 2);
+  }
+  // test less or equal
+  PrintAscii("test 5", 6);
+  if (a<=b) {
+    PrintAscii("OK", 2);
+  } else {
+    PrintAscii("KO", 2);
+  }
+  
+  //test not
+  PrintAscii("test 6", 6);
+  c = ~a;
+  PrintInt(c); 
+  
+  // test substract
+  PrintAscii("test 7", 6);
+  c = a-b;
+  PrintInt(c); 
+  c = b - 1234;
+  PrintInt(c); 
 
   return 1;
 }

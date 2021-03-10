@@ -42,15 +42,11 @@ entity poulpi32_decode is
     ALU_START_IMM     : out std_logic;
     ALU_OP_CODE_F3    : out std_logic_vector(2 downto 0);
     ALU_OP_CODE_F7    : out std_logic_vector(6 downto 0);
-    -- mux signals
-    MUX_ID            : out std_logic_vector(1 downto 0);
     -- register signals
     RS1_ID            : out std_logic_vector(4 downto 0);
     RS2_ID            : out std_logic_vector(4 downto 0);
     RD_ID             : out std_logic_vector(4 downto 0);
     -- decode register
-    RS_1              : in  std_logic_vector(31 downto 0);
-    RS_2              : in  std_logic_vector(31 downto 0);
     RD                : out std_logic_vector(31 downto 0);
     WE                : out std_logic
   );
@@ -113,25 +109,24 @@ begin
       if (RSTN = '0') then
         --internal signals
         decode_state      <= ST_START;
-        pc                <= (others => '0');
+        pc                <= (others => '-');
         -- output
         FETCH_START       <= '0';
-        BRANCH_IMM        <= (others => '0');
-        BRANCH_OP_CODE    <= (others => '0');
-        BRANCH_OP_CODE_F3 <= (others => '0');
+        BRANCH_IMM        <= (others => '-');
+        BRANCH_OP_CODE    <= (others => '-');
+        BRANCH_OP_CODE_F3 <= (others => '-');
         BRANCH_START      <= '0';
-        LSU_OP_CODE_F3    <= (others => '0');
-        LSU_IMM           <= (others => '0');
+        LSU_OP_CODE_F3    <= (others => '-');
+        LSU_IMM           <= (others => '-');
         LSU_START_LOAD    <= '0';
         LSU_START_STORE   <= '0';
-        ALU_IMM           <= (others => '0');
-        ALU_IMMU          <= (others => '0');
-        ALU_SHAMT         <= (others => '0');
+        ALU_IMM           <= (others => '-');
+        ALU_IMMU          <= (others => '-');
+        ALU_SHAMT         <= (others => '-');
         ALU_START_REG     <= '0';
         ALU_START_IMM     <= '0';
-        ALU_OP_CODE_F3    <= (others => '0');
-        ALU_OP_CODE_F7    <= (others => '0');
-        MUX_ID            <= (others => '0');
+        ALU_OP_CODE_F3    <= (others => '-');
+        ALU_OP_CODE_F7    <= (others => '-');
         WE                <= '0';
       
       else
@@ -179,7 +174,6 @@ begin
               -- load upper immediate
               -- rd <= imm &"000...0"
               when C_OP_LUI =>
-                MUX_ID        <= C_DC_ID;
                 RD            <= u_imm;
                 pc            <= BRANCH_NEXT_PC;
                 WE            <= '1';
@@ -190,7 +184,6 @@ begin
               -- add upper immediate
               -- RD <= PC+imm &"000...0"
               when C_OP_AUIPC  =>
-                MUX_ID        <= C_BR_ID;
                 BRANCH_IMM    <= u_imm;
                 BRANCH_START  <= '1';
                 decode_state  <= ST_BRANCH_WAIT;
@@ -199,7 +192,6 @@ begin
             -- PC=PC+signed(imm)
             -- store the address of pc+4 to rd
               when C_OP_JAL  =>
-                MUX_ID        <= C_BR_ID;
                 BRANCH_IMM    <= std_logic_vector(resize(signed(j_imm&"0"), 32)); --value is in multiple of two bytes
                 BRANCH_START  <= '1';
                 decode_state  <= ST_BRANCH_WAIT;
@@ -209,7 +201,6 @@ begin
               -- offset=signed(rs1)+signed(imm)
               -- store the address of pc+1 to rd
               when C_OP_JALR  => 
-                MUX_ID          <= C_BR_ID;
                 BRANCH_START    <= '1';
                 decode_state    <= ST_BRANCH_WAIT;
                 BRANCH_IMM      <= std_logic_vector(resize(signed(i_imm), 32)); 
@@ -217,14 +208,12 @@ begin
               -- consditionnal branch
               -- PC <= PC+imm if condition
               when  C_OP_BRANCH =>
-                MUX_ID          <= C_BR_ID;
                 BRANCH_IMM      <= std_logic_vector(resize(signed(b_imm), 32));
                 BRANCH_START    <= '1';
                 decode_state    <= ST_BRANCH_WAIT;
 
               -- load byte, half or word from memory
               when  C_OP_LOAD =>
-                MUX_ID          <= C_LSU_ID;
                 LSU_IMM         <= std_logic_vector(resize(signed(i_imm), 32));
                 pc              <= BRANCH_NEXT_PC;
                 FETCH_START     <= '1';
@@ -234,7 +223,6 @@ begin
 
               -- store byte, half or word in memory
               when C_OP_STORE =>
-                MUX_ID          <= C_LSU_ID;
                 LSU_IMM         <= std_logic_vector(resize(signed(s_imm), 32));
                 pc              <= BRANCH_NEXT_PC;
                 FETCH_START     <= '1';
@@ -244,7 +232,6 @@ begin
 
               -- arithmetic operation using immediate values
               when C_OP_ARTHI =>
-                MUX_ID          <= C_ALU_ID;
                 ALU_IMM         <= std_logic_vector(resize(signed(i_imm), 32));
                 ALU_IMMU        <= std_logic_vector(resize(unsigned(i_imm), 32));
                 ALU_SHAMT       <= shamt;
@@ -256,7 +243,6 @@ begin
 
               -- arithemtic operations using registers values
               when C_OP_ARTH    =>
-                MUX_ID          <= C_ALU_ID;
                 pc              <= BRANCH_NEXT_PC;
                 FETCH_START     <= '1';
                 ALU_START_REG   <= '1';

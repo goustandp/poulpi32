@@ -8,7 +8,6 @@ library ieee;
 
 entity poulpi32_mux is
   port(
-    ID        : in  std_logic_vector(1 downto 0);
     
     REG_RS_1  : in  std_logic_vector(31 downto 0);
     REG_RS_2  : in  std_logic_vector(31 downto 0);
@@ -30,8 +29,6 @@ entity poulpi32_mux is
     BR_RD     : in  std_logic_vector(31 downto 0);
     BR_WE     : in  std_logic;
     
-    DC_RS_1   : out std_logic_vector(31 downto 0);
-    DC_RS_2   : out std_logic_vector(31 downto 0);
     DC_RD     : in  std_logic_vector(31 downto 0);
     DC_WE     : in  std_logic
   );
@@ -52,19 +49,14 @@ begin
   BR_RS_1   <= REG_RS_1;
   BR_RS_2   <= REG_RS_2;
   
-  DC_RS_1   <= REG_RS_1;
-  DC_RS_2   <= REG_RS_2;
 
   -- mux rd reg
-  REG_RD    <=  LSU_RD  when  (ID = C_LSU_ID) else
-                ALU_RD  when  (ID = C_ALU_ID) else
-                BR_RD   when  (ID = C_BR_ID)  else
+  REG_RD    <=  LSU_RD  when  (LSU_WE = '1') else
+                ALU_RD  when  (ALU_WE = '1') else
+                BR_RD   when  (BR_WE  = '1')  else
                 DC_RD;
       
     
-  REG_WE    <=  LSU_WE  when  (ID = C_LSU_ID) else
-                ALU_WE  when  (ID = C_ALU_ID) else
-                BR_WE   when  (ID = C_BR_ID)  else
-                DC_WE;
+  REG_WE    <=  LSU_WE or ALU_WE or BR_WE or DC_WE;
      
   end rtl;

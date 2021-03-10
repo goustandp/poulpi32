@@ -1,6 +1,6 @@
 
 
-SIMTIME= 4000us
+SIMTIME= 8000us
 GHDL=ghdl
 GHDLFLAGS=-frelaxed --std=02
 GHDLRUNFLAGS=--wave=./toto.ghw --stop-time=$(SIMTIME)
